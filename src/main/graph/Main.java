@@ -1,21 +1,28 @@
-package main;
+package main.graph;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
+public class Main {
 
-public class Solution {
-    public long solve(int l,long n) throws Exception {
-        return 0;
+    List<List<Integer>> g;
+    void solve() throws Exception {
+        int n=nextInt();
+        int m=nextInt();
+        List<List<Integer>> g=new ArrayList<>();
+        for (int i = 0; i <= n; i++) {
+            g.add(new ArrayList<>());
+        }
+        for (int i = 0; i < m; i++) {
+            int a=nextInt(),b=nextInt();
+            g.get(a).add(b);
+            g.get(b).add(a);
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        int T=nextInt();
-        for (int i = 0; i < T; i++) {
-            int L=nextInt();
-            int N=nextInt();
-            long r = new Solution().solve(L,N);
-            System.out.printf("Case #%d: %d\n", i+1,r);
-        }
+        new Main().solve();
     }
 
     static PrintWriter out = new PrintWriter(System.out, true);
@@ -44,4 +51,5 @@ public class Solution {
         }
     }
 }
+
 
