@@ -54,7 +54,7 @@ public class MathTemplate {
         int[] fac = new int[n + 1];
         int[] faci = new int[n + 1];
         fac[0] = faci[0] = 1;
-        for (int i = 1; i < n; i++) {
+        for (int i = 1; i <= n; i++) {
             fac[i] = fac[i - 1] * i % mod;
             faci[i] = (int) ksm(fac[i], mod - 2, mod);
         }
