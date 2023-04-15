@@ -1,6 +1,7 @@
 package template;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @Author Create by jiaxiaozheng
@@ -62,6 +63,13 @@ public class MathTemplate {
     }
 
     /**
+     * 求逆元，m必须是素数
+     */
+    static long modinv(long a, long m) {
+        return ksm(a, m - 2, m);
+    }
+
+    /**
      * 判断是否素数
      */
     public static boolean isPrime(int n) {
@@ -90,6 +98,28 @@ public class MathTemplate {
             i++;
         }
         return isPrime;
+    }
+
+    static class Point {
+        long x,y;
+
+        public Point(long x, long y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Point point = (Point) o;
+            return x == point.x && y == point.y;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y);
+        }
     }
 
 }
