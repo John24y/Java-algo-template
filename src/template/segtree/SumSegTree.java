@@ -75,11 +75,11 @@ class SumSegTree {
         //pushDown的时候并没有去下发lazy值,因为对于求sum来说,可以在query的时候把整条路径上的lazy都算上
     }
 
-    public long query(int l, int r) {
-        return query(root, l, r, 0, maxN);
+    public long sum(int l, int r) {
+        return sum(root, l, r, 0, maxN);
     }
 
-    private long query(Node node, int l, int r, int ls, int rs) {
+    private long sum(Node node, int l, int r, int ls, int rs) {
         if (r<l) {
             return 0;
         }
@@ -94,10 +94,10 @@ class SumSegTree {
         int cover=Math.min(r,rs)-Math.max(l,ls)+1;
         long res = trim(cover*node.lazy);
         if (l <= mid) {
-            res += query(node.left, l, r, ls, mid);
+            res += sum(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            res += query(node.right, l, r, mid + 1, rs);
+            res += sum(node.right, l, r, mid + 1, rs);
         }
         return trim(res);
     }

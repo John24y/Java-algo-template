@@ -3,22 +3,22 @@ package template.segtree;
 /**
  * 区间赋值线段树，但只能覆盖赋值，不能累加。且赋值是相对下标的偏移。
  */
-public class OffsetSegTree {
+class OffsetSegTree {
 
     class Node {
-        OffsetSegTree.Node left;
-        OffsetSegTree.Node right;
+        Node left;
+        Node right;
         boolean hasVal;
         long offset;
         int ls, rs;//debug用
     }
 
     int maxN;
-    OffsetSegTree.Node root;
+    Node root;
 
     public OffsetSegTree(int maxN) {
         this.maxN = maxN;
-        this.root = new OffsetSegTree.Node();
+        this.root = new Node();
         root.ls = 0;
         root.rs = maxN;
     }
@@ -30,7 +30,7 @@ public class OffsetSegTree {
     /**
      * 当前Node的范围: [ls,rs]
      */
-    private void add(OffsetSegTree.Node node, int l, int r, long offset, int ls, int rs) {
+    private void add(Node node, int l, int r, long offset, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
@@ -54,15 +54,15 @@ public class OffsetSegTree {
     }
 
     //对孩子节点的递归调用时要先下传懒标记
-    void pushDown(OffsetSegTree.Node node, int ls, int rs) {
+    void pushDown(Node node, int ls, int rs) {
         int mid = ls + rs >> 1;
         if (node.left == null) {
-            node.left = new OffsetSegTree.Node();
+            node.left = new Node();
             node.left.ls = ls;
             node.left.rs = mid;
         }
         if (node.right == null) {
-            node.right = new OffsetSegTree.Node();
+            node.right = new Node();
             node.right.ls = mid + 1;
             node.right.rs = rs;
         }
@@ -77,7 +77,7 @@ public class OffsetSegTree {
         return offset(root, i,0, maxN);
     }
 
-    private long offset(OffsetSegTree.Node node, int i, int ls, int rs) {
+    private long offset(Node node, int i, int ls, int rs) {
         if (i < 0 || i > maxN) {
             throw new IllegalArgumentException();
         }

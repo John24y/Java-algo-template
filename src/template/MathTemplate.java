@@ -16,10 +16,18 @@ public class MathTemplate {
         return gcd(b % a, a);
     }
 
+
+    /**
+     * 求逆元，m必须是素数
+     */
+    static long modinv(long a, long m) {
+        return ksm(a, m - 2, m);
+    }
+
     /**
      * 快速幂，求(a^pow)%mod
      */
-    public static long ksm(long a, long pow, long mod) {
+    static long ksm(long a, long pow, long mod) {
         long skt = 1;
         while (pow > 0) {
             if (pow % 2 != 0) {
@@ -60,13 +68,6 @@ public class MathTemplate {
             faci[i] = (int) ksm(fac[i], mod - 2, mod);
         }
         return new int[][]{fac, faci};
-    }
-
-    /**
-     * 求逆元，m必须是素数
-     */
-    static long modinv(long a, long m) {
-        return ksm(a, m - 2, m);
     }
 
     /**

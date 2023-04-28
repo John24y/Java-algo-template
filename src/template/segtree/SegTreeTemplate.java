@@ -4,7 +4,7 @@ package template.segtree;
  * @Author Create by jiaxiaozheng
  * @Date 2023/2/19
  */
-public class SegTreeTemplate {
+class SegTreeTemplate {
 
     class Node {
         Node left;

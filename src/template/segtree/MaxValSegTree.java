@@ -1,6 +1,6 @@
 package template.segtree;
 
-public class MaxValSegTree {
+class MaxValSegTree {
 
     class Node {
         Node left;
