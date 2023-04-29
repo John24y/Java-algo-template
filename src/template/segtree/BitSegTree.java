@@ -52,7 +52,7 @@ public class BitSegTree {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            //只要有外部对当前节点的更新操作, 就需要重新计算当前节点的sum
+            //每个节点的sum都是准确的，所以不能只更新lazy，sum也要算
             if (op == OP.INV) {
                 if (node.lazy == OP.SET) {
                     op = OP.UNSET;

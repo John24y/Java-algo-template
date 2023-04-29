@@ -47,7 +47,7 @@ class SegTreeTemplate {
         }
         if (l <= ls && rs <= r) {
             //[l,r]覆盖了当前子树
-            //只要有外部对当前节点的更新操作, 就需要重新计算当前节点的sum
+            //每个节点的sum都是准确的，所以不能只更新lazy，sum也要算
             node.lazyAdd += val;
             node.sum += (rs - ls + 1) * val;
             return;
