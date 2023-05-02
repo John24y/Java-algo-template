@@ -1,6 +1,8 @@
 package template;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -99,6 +101,22 @@ public class MathTemplate {
             i++;
         }
         return isPrime;
+    }
+
+    public static List<Integer> getPrimes(int upTo) {
+        List<Integer> res=new ArrayList<>();
+        boolean[] notPrime = new boolean[upTo + 1];
+        notPrime[0] = true;
+        notPrime[1] = true;
+        for (int i = 2; i <= upTo; i++) {
+            if (!notPrime[i]) {
+                res.add(i);
+                for (int j = i + i; j <= upTo; j += i) {
+                    notPrime[j] = true;
+                }
+            }
+        }
+        return res;
     }
 
     static class Point {
