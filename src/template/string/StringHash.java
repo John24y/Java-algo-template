@@ -1,4 +1,4 @@
-package template;
+package template.string;
 
 //如果出现hash冲突，可用不同的fact创建多个此类对象。或者用随机哈希fact。
 class StringHash {

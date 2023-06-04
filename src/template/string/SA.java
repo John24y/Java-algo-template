@@ -1,4 +1,4 @@
-package template;
+package template.string;
 
 /**
  * @Author Create by jiaxiaozheng

@@ -1,4 +1,4 @@
-package template;
+package template.math;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,6 +115,51 @@ public class MathTemplate {
                     notPrime[j] = true;
                 }
             }
+        }
+        return res;
+    }
+
+    /**
+     * 获取n的不同的素因子，如果n是素数，包括n
+     */
+    List<Integer> factors(int n) {
+        List<Integer> res=new ArrayList<>();
+        int p=2,x=n;
+        while (p*p<=n){
+            if (x%p==0){
+                res.add(p);
+                while (x%p==0){
+                    x/=p;
+                }
+            }
+            p++;
+        }
+        if (x!=1) {
+            res.add(x); //如果n是素数，包括n
+        }
+        return res;
+    }
+
+    /**
+     * 获取n的所有素因子的重复次数，如果n是素数，包括n
+     * r[i][0] 因子，r[i][1]因子重复次数
+     */
+    List<int[]> factorsRepeat(int n) {
+        List<int[]> res=new ArrayList<>();
+        int p=2,x=n;
+        while (p*p<=n){
+            if (x%p==0){
+                int t=0;
+                while (x%p==0){
+                    x/=p;
+                    t++;
+                }
+                res.add(new int[] {x,t});
+            }
+            p++;
+        }
+        if (x!=1){
+            res.add(new int[] {x,1}); //如果n是素数，包括n
         }
         return res;
     }

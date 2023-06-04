@@ -1,6 +1,6 @@
 package template;
 
-public class UnionFind {
+class UnionFind {
     int[] fa;
     int[] sz;//包含节点数量
     int[] edgeCnt;//包含边数

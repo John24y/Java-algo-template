@@ -38,7 +38,7 @@ public class LCUtils {
     public static String[] parseStringAr(String s) {
         s = s.replace(" ", "");
         s = s.substring(1, s.length() - 1);
-        return Arrays.stream(s.split(",")).toArray(String[]::new);
+        return Arrays.stream(s.split(",")).map(x->x.substring(1,x.length()-1)).toArray(String[]::new);
     }
 
     public static void main(String[] args) {

@@ -1,13 +1,11 @@
 package main;
+
 import java.io.*;
 import java.util.*;
-
+import java.util.stream.Collectors;
 
 public class Main {
-    static int mod = 998244353;
-    static long modinv(long a, long m) {
-        return ksm(a, m - 2, m);
-    }
+    int mod = 998244353;
     static long ksm(long a, long pow, long mod) {
         long skt = 1;
         while (pow > 0) {
@@ -20,37 +18,111 @@ public class Main {
         return skt % mod;
     }
 
-    Map<Long,Long> map=new HashMap<>();
-    long m1_5=modinv(5,mod)%mod;
-
-    long dfs(long v, long n) {
-        if (v==1) {
-            return 1;
+    String s;
+    int n,b,p,k;
+    public void solve() throws Exception {
+        n=nextInt();
+        b=nextInt();
+        p=nextInt();
+        k=nextInt();
+        s=next();
+        int sh=0;
+        for (int i = 0; i < n; i++) {
+            int c = s.charAt(i) - 'a' + 1;
+            int ksm = (int) ksm(b, n - i - 1, p);
+            sh = (sh + c*ksm) % p;
         }
-        if (v<=0) {
-            return 0;
-        }
-        if (map.containsKey(v)){
-            return map.get(v);
-        }
-        long res=0;
-        for (int i = 2; i <= 6; i++) {
-            if (v%i==0) {
-                res+=dfs(v/i, n)*m1_5%mod;
-                res%=mod;
+        Node node = dfs(n - 1, k, sh);
+        if (node==null) {
+            System.out.println(-1);
+        } else {
+            List<Character> res=new ArrayList<>();
+            while (node!=null) {
+                res.add(node.c);
+                node=node.node;
             }
+            res.remove(n);
+            Collections.reverse(res);
+            System.out.println(res.stream().map(x->x.toString()).collect(Collectors.joining()));
         }
-        map.put(v,res);
-        return res;
     }
 
-    public void solve() throws Exception {
-        long n=nextLong();
-        out.println(dfs(n,n));
+    static class Key {
+        int i,k,hash;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Key key = (Key) o;
+            return i == key.i && k == key.k && hash == key.hash;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(i, k, hash);
+        }
+
+        public Key(int i, int k, int hash) {
+            this.i = i;
+            this.k = k;
+            this.hash = hash;
+        }
+    }
+    static class Node {
+        Node node;
+        char c;
+
+        public Node(Node node, char c) {
+            this.node = node;
+            this.c = c;
+        }
+    }
+    static Node NULL = new Node(null,'a');
+    Map<Key,Node> map = new HashMap<>();
+    Node dfs(int i, int k, int hash) {
+        if (i+1<k) {
+            return null;
+        }
+        Key key=new Key(i,k,hash);
+        if (i==-1) {
+            if (k==0&&hash==0) {
+                return new Node(null,'0');
+            }
+            return null;
+        }
+        Node node = map.get(key);
+        if (node==NULL) return null;
+        if (node!=null){
+            return node;
+        }
+        for (int j = 1; j <= 26; j++) {
+            int nhash = (int) ((hash - j * ksm(b,n-i-1,p) + 30 * p) % p);
+            if (j==s.charAt(i)-'a'+1) {
+                Node r = dfs(i - 1, k - 1, nhash);
+                if (r != null) {
+                    Node node1 = new Node(r, (char) (j + 'a' - 1));
+                    map.put(key, node1);
+                    return node1;
+                }
+            } else {
+                Node r = dfs(i - 1, k, nhash);
+                if (r != null) {
+                    Node node1 = new Node(r, (char) (j + 'a' - 1));
+                    map.put(key, node1);
+                    return node1;
+                }
+            }
+        }
+        map.put(key, NULL);
+        return null;
     }
 
     public static void main(String[] args) throws Exception {
-        new Main().solve();
+        int t = nextInt();
+        for (int i = 0; i < t; i++) {
+            new Main().solve();
+        }
     }
 
     static PrintWriter out = new PrintWriter(System.out, true);

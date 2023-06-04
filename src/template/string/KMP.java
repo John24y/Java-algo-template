@@ -1,4 +1,4 @@
-package template;
+package template.string;
 
 import java.util.Arrays;
 

@@ -1,4 +1,4 @@
-package template;
+package template.math;
 
 /**
  * @Author Create by jiaxiaozheng
