@@ -1,8 +1,11 @@
-package main;
-import java.io.*;
-import java.util.*;
+package template.segtree;
 
-
+/**
+ * tree[i]表示i在数组中出现的次数。可单点更新并查询数组的前k大之和。
+ *
+ * @Author Create by jiaxiaozheng
+ * @Date 2023/6/18
+ */
 class TopKSumTree {
 
     static class Node {
@@ -28,13 +31,14 @@ class TopKSumTree {
         return v;
     }
 
+    //增加cnt个元素i
     public void add(int i, long cnt) {
         add(root, i, cnt);
     }
 
     private void add(Node node, int i, long cnt) {
-        int ls=node.ls,rs=node.rs;
-        if (i<0 || i > maxN){
+        int ls = node.ls, rs = node.rs;
+        if (i < 0 || i > maxN) {
             throw new IllegalArgumentException("index:" + i);
         }
         if (rs == ls && ls == i) {
@@ -71,17 +75,14 @@ class TopKSumTree {
         }
     }
 
-    public long sum(int l, int r) {
-        return sum(root, l, r);
-    }
-
-    private long sum(Node node, int l, int r) {
-        int ls=node.ls,rs=node.rs;
-        if (r<l) {
+    //求[l,r]上元素之和
+    public long sum(Node node, int l, int r) {
+        int ls = node.ls, rs = node.rs;
+        if (r < l) {
             return 0;
         }
-        if (r<0){
-            throw new IllegalArgumentException("index:"+r);
+        if (r < 0) {
+            throw new IllegalArgumentException("index:" + r);
         }
         if (l <= ls && rs <= r) {
             return node.sum;
@@ -91,25 +92,53 @@ class TopKSumTree {
         long res = 0;
         if (l <= mid) {
             res += sum(node.left, l, r);
+            res = trim(res);
         }
         if (r >= mid + 1) {
             res += sum(node.right, l, r);
+            res = trim(res);
+        }
+        return trim(res);
+    }
+
+    //求[l,r]元素个数
+    public long cnt(Node node, int l, int r) {
+        int ls = node.ls, rs = node.rs;
+        if (r < l) {
+            return 0;
+        }
+        if (r < 0) {
+            throw new IllegalArgumentException("index:" + r);
+        }
+        if (l <= ls && rs <= r) {
+            return node.cnt;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        long res = 0;
+        if (l <= mid) {
+            res += sum(node.left, l, r);
+            res = trim(res);
+        }
+        if (r >= mid + 1) {
+            res += sum(node.right, l, r);
+            res = trim(res);
         }
         return trim(res);
     }
 
     //从最大下标开始向左找到cnt个值并返回sum
     public long sumLeftwardWithCnt(Node node, long cnt) {
-        if (cnt==0) return 0;
-        int ls=node.ls, rs=node.rs;
-        if (ls==rs && node.cnt>cnt) {
+        if (cnt == 0) return 0;
+        int ls = node.ls, rs = node.rs;
+        if (ls == rs && node.cnt > cnt) {
             return node.sum / node.cnt * cnt;
         }
-        if (node.cnt<=cnt) {
+        if (node.cnt <= cnt) {
             return node.sum;
         }
         pushDown(node, ls, rs);
-        long res=0;
+        long res = 0;
         if (node.right.cnt < cnt) {
             res = trim(res + node.right.sum + sumLeftwardWithCnt(node.left, cnt - node.right.cnt));
         } else {
@@ -118,55 +147,3 @@ class TopKSumTree {
         return res;
     }
 }
-
-
-public class Main {
-    public void solve() throws Exception {
-        int n = nextInt(),k=nextInt(),q=nextInt();
-        int MX = (int) 1e9;
-        TopKSumTree tree = new TopKSumTree((int) 1e9);
-        int[] ar=new int[n];
-        Arrays.fill(ar,-1);
-        for (int i = 0; i < q; i++) {
-            int j=nextInt()-1,y=nextInt();
-            int old = ar[j];
-            ar[j] = y;
-            if (old>-1) {
-                tree.add(old,-1);
-            }
-            tree.add(y,1);
-            out.println(tree.sumLeftwardWithCnt(tree.root, k));
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        new Main().solve();
-    }
-
-    static PrintWriter out = new PrintWriter(System.out, true);
-    static InputReader in = new InputReader(System.in);
-    static String next() { return in.next(); }
-    static int nextInt() { return Integer.parseInt(in.next()); }
-    static long nextLong() { return Long.parseLong(in.next()); }
-    static class InputReader {
-        public BufferedReader reader;
-        public StringTokenizer tokenizer;
-
-        public InputReader(InputStream stream) {
-            reader = new BufferedReader(new InputStreamReader(stream), 32768);
-            tokenizer = null;
-        }
-
-        public String next() {
-            while (tokenizer == null || !tokenizer.hasMoreTokens()) {
-                try {
-                    tokenizer = new StringTokenizer(reader.readLine());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return tokenizer.nextToken();
-        }
-    }
-}
-

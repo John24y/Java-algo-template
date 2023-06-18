@@ -1,6 +1,8 @@
 package template.segtree;
 
 /**
+ * tree[i]表示i在数组中出现的次数，数组可动态修改的情况下求数组的第k小
+ *
  * @Author Create by jiaxiaozheng
  * @Date 2023/2/19
  */
