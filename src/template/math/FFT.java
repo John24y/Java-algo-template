@@ -3,6 +3,11 @@ package template.math;
 import java.io.IOException;
 
 /**
+ * 快速傅里叶变换 O(nlogn)时间的多项式乘法。
+ * ● 避免创建Complex对象，用数组存储所有复数。且使用double[2][N]而不是double[N][2]，后者和创建Complex对象的性能是一样的，
+ * 要改成double[2][N]才能减少创建对象，分配连续内存，提高CPU缓存行命中率。实测效果从11s提升到了3.6s。
+ * ● 用快读快写。不要用Stream拼接输出结果，可以快约0.5s
+ *
  * @Author Create by jiaxiaozheng
  * @Date 2023/6/23
  */
