@@ -1,18 +1,10 @@
-package main;
-import java.io.*;
+package template.math;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.StringTokenizer;
-import java.util.stream.Collectors;
 
 /**
- * 快速傅里叶变换 O(nlogn)时间的多项式乘法。
- * ● 避免创建Complex对象，用数组存储所有复数。且使用double[2][N]而不是double[N][2]，后者和创建Complex对象的性能是一样的，
- * 要改成double[2][N]才能减少创建对象，分配连续内存，提高CPU缓存行命中率。实测效果从11s提升到了3.6s。
- * ● 用快读快写。不要用Stream拼接输出结果，可以快约0.5s
+ * @Author Create by jiaxiaozheng
+ * @Date 2023/6/23
  */
 class FFT {
     static final double PI = Math.PI;
@@ -46,7 +38,7 @@ class FFT {
         }
 
         FFT(F, lim, -1, rev);
-        int[] ans = new int[t+1];
+        int[] ans = new int[t + 1];
         for (int i = 0; i <= t; ++i) {
             ans[i] = (int) (F[1][i] / 2 + 0.5);
         }
@@ -119,49 +111,3 @@ class FFT {
     }
 
 }
-public class Main {
-
-    public static void main(String[] args) throws IOException {
-        int n=nextInt(),m=nextInt();
-        int[] a=new int[n+1];
-        int[] b=new int[m+1];
-        for (int i = 0; i <= n; ++i) {
-            a[i]=nextInt();
-        }
-        for (int i = 0; i <= m; ++i) {
-            b[i]=nextInt();
-        }
-        int[] c=FFT.ployMul(a,b);
-        for (int i = 0; i < c.length; i++) {
-            out.print(c[i]+" ");
-        }
-        out.flush();
-    }
-
-    static PrintWriter out = new PrintWriter(System.out, true);
-    static InputReader in = new InputReader(System.in);
-    static String next() { return in.next(); }
-    static int nextInt() { return Integer.parseInt(in.next()); }
-    static long nextLong() { return Long.parseLong(in.next()); }
-    static class InputReader {
-        public BufferedReader reader;
-        public StringTokenizer tokenizer;
-
-        public InputReader(InputStream stream) {
-            reader = new BufferedReader(new InputStreamReader(stream), 32768);
-            tokenizer = null;
-        }
-
-        public String next() {
-            while (tokenizer == null || !tokenizer.hasMoreTokens()) {
-                try {
-                    tokenizer = new StringTokenizer(reader.readLine());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return tokenizer.nextToken();
-        }
-    }
-}
-
