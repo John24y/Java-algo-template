@@ -1,13 +1,4 @@
-package main;
-
-
-import java.io.*;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.StringTokenizer;
-
+package template;
 
 class NTT {
     static final int P = 998244353, G = 3, Gi = 332748118;
@@ -74,57 +65,3 @@ class NTT {
         return base % P;
     }
 }
-public class Main {
-
-    public static void main(String[] args) throws IOException {
-        int n=nextInt();
-        int[] ar=new int[n];
-        int mx = 0;
-        for (int i = 0; i < n; ++i) {
-            int v=nextInt();
-            mx=Math.max(mx,v);
-            ar[i]=v;
-        }
-        int[] a=new int[mx+1],b=new int[mx+1];
-        for (int e : ar) {
-            a[e]++;
-            b[e]++;
-        }
-        int[] c=NTT.polyMul(a,b);
-        for (int i = 0; i < c.length; i++) {
-            if (c[i]>=4) {
-                System.out.println("YES");
-                return;
-            }
-        }
-        System.out.println("NO");
-        out.flush();
-    }
-
-    static PrintWriter out = new PrintWriter(System.out, true);
-    static InputReader in = new InputReader(System.in);
-    static String next() { return in.next(); }
-    static int nextInt() { return Integer.parseInt(in.next()); }
-    static long nextLong() { return Long.parseLong(in.next()); }
-    static class InputReader {
-        public BufferedReader reader;
-        public StringTokenizer tokenizer;
-
-        public InputReader(InputStream stream) {
-            reader = new BufferedReader(new InputStreamReader(stream), 32768);
-            tokenizer = null;
-        }
-
-        public String next() {
-            while (tokenizer == null || !tokenizer.hasMoreTokens()) {
-                try {
-                    tokenizer = new StringTokenizer(reader.readLine());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return tokenizer.nextToken();
-        }
-    }
-}
-

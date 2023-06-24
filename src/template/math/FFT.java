@@ -14,7 +14,7 @@ import java.io.IOException;
 class FFT {
     static final double PI = Math.PI;
 
-    static int[] ployMul(int[] a, int[] b) {
+    static int[] polyMul(int[] a, int[] b) {
         int n = a.length - 1, m = b.length - 1;
         int t = n + m;
         n = Math.max(n, m);

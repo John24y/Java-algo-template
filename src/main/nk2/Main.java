@@ -1,73 +1,67 @@
 package main.nk2;
 
 import java.io.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class Main {
-    int M = 998244353;
-    static long ksm(long a, long pow, long mod) {
-        long skt = 1;
-        while (pow > 0) {
-            if (pow % 2 != 0) {
-                skt = skt * a % mod;
-            }
-            a = a * a % mod;
-            pow = pow >> 1;
+    private static final int MAXN = 3000000 + 10, P = 998244353, G = 3, Gi = 332748118;
+    private static int N, M, limit = 1, L;
+    private static int[] r = new int[MAXN];
+    private static long[] a = new long[MAXN], b = new long[MAXN];
+
+    private static long fastpow(long a, long k) {
+        long base = 1;
+        while(k != 0) {
+            if((k & 1) != 0)
+                base = (base * a) % P;
+            a = (a * a) % P;
+            k >>= 1;
         }
-        return skt % mod;
+        return base % P;
     }
 
-    List<Integer> fac(int n) {
-        List<Integer> res=new ArrayList<>();
-        int p=2,x=n;
-        while (p*p<=n){
-            if (x%p==0){
-                res.add(p);
+    private static void NTT(long[] A, int type) {
+        for(int i = 0; i < limit; i++)
+            if(i < r[i]) {
+                long temp = A[i];
+                A[i] = A[r[i]];
+                A[r[i]] = temp;
             }
-            while (x%p==0){
-                x/=p;
-            }
-            p++;
-        }
-        if (x!=1&&x!=n){
-            res.add(x);
-        }
-        return res;
-    }
-
-    public void solve() throws Exception {
-        int n=nextInt();
-        String s=next();
-        int cdot=0;
-        for (int i = 0; i < n; i++) {
-            if (s.charAt(i)=='.') cdot++;
-        }
-        List<Integer> fac=fac(n);
-        long res=1;
-        if (cdot==0) {
-            res++;
-        }
-        for (Integer f : fac) {
-            boolean[] cover=new boolean[f];
-            for (int i = 0; i < f; i++) {
-                for (int j = i; j < n; j+=f) {
-                    cover[i]|=s.charAt(j)=='.';
+        for(int mid = 1; mid < limit; mid <<= 1) {
+            long Wn = fastpow( type == 1 ? G : Gi , (P - 1) / (mid << 1));
+            for(int j = 0; j < limit; j += (mid << 1)) {
+                long w = 1;
+                for(int k = 0; k < mid; k++, w = (w * Wn) % P) {
+                    long x = A[j + k], y = w * A[j + k + mid] % P;
+                    A[j + k] = (x + y) % P;
+                    A[j + k + mid] = (x - y + P) % P;
                 }
             }
-            int uc=0;
-            for (int i = 0; i < f; i++) {
-                if (!cover[i])uc++;
-            }
-            res = (res+ksm(2,uc,M)+M-1-(uc==f?1:0))%M;
         }
-        System.out.println(res);
     }
 
-    public static void main(String[] args) throws Exception {
-//        int t = nextInt();
-//        for (int i = 0; i < t; i++) {
-//        }
-        new Main().solve();
+    public static void main(String[] args) {
+        N = nextInt();
+        M = nextInt();
+        for(int i = 0; i <= N; i++) a[i] = (nextInt() + P) % P;
+        for(int i = 0; i <= M; i++) b[i] = (nextInt() + P) % P;
+        while(limit <= N + M) {
+            limit <<= 1;
+            L++;
+        }
+        for(int i = 0; i < limit; i++) r[i] = (r[i >> 1] >> 1) | ((i & 1) << (L - 1));
+        NTT(a, 1);
+        NTT(b, 1);
+        for(int i = 0; i < limit; i++) a[i] = (a[i] * b[i]) % P;
+        NTT(a, -1);
+        long inv = fastpow(limit, P - 2);
+        for(int i = 0; i <= N + M; i++)
+            out.print(((a[i] * inv) % P) + " ");
+        out.flush();
     }
 
     static PrintWriter out = new PrintWriter(System.out, true);
