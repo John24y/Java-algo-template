@@ -1,6 +1,7 @@
 package main;
 
 import java.io.*;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
 public class Solution {
@@ -9,13 +10,11 @@ public class Solution {
     }
 
     public static void main(String[] args) throws Exception {
-        int T=nextInt();
-        for (int i = 0; i < T; i++) {
-            int L=nextInt();
-            int N=nextInt();
-            long r = new Solution().solve(L,N);
-            System.out.printf("Case #%d: %d\n", i+1,r);
-        }
+        PriorityQueue<Integer> q=new PriorityQueue<>();
+        q.add(3);
+        q.add(2);
+        q.add(1);
+        System.out.println(q);
     }
 
     static PrintWriter out = new PrintWriter(System.out, true);
