@@ -1,4 +1,4 @@
-package template;
+package template.math;
 
 class NTT {
     static final int P = 998244353, G = 3, Gi = 332748118;
