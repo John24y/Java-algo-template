@@ -3,6 +3,10 @@ package template.math;
 class NTT {
     static final int P = 998244353, G = 3, Gi = 332748118;
 
+    /**
+     * 多项式A*B, a[i]表示多项式A的i次项系数
+     * @return C=A*B,c[i]表示i次项的系数
+     */
     static int[] polyMul(int[] a, int[] b) {
         int N = a.length - 1, M = b.length - 1;
         int t = N + M;
@@ -30,6 +34,37 @@ class NTT {
         int[] ans = new int[t + 1];
         long inv = fastpow(limit, P - 2);
         for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[0][i] * inv) % P);
+        return ans;
+    }
+
+    /**
+     * 多项式A*A, a[i]表示多项式A的i次项系数
+     * @return C=A*A,c[i]表示i次项的系数
+     */
+    static int[] polySquare(int[] a) {
+        int N = a.length - 1;
+        int t = N + N;
+        int limit = 1, L = 0;
+        while (limit <= (N << 1)) {
+            limit <<= 1;
+            ++L;
+        }
+
+        int[] A = new int[limit + 1];
+        int[] rev = new int[limit + 1];
+        System.arraycopy(a, 0, A, 0, a.length);
+
+        for(int i = 0; i < limit; i++) {
+            rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (L - 1));
+        }
+
+        NTT(A, limit, 1, rev);
+        for(int i = 0; i < limit; i++) A[i] = (int) (((long)A[i] * (long)A[i]) % P);
+        NTT(A, limit, -1, rev);
+
+        int[] ans = new int[t + 1];
+        long inv = fastpow(limit, P - 2);
+        for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[i] * inv) % P);
         return ans;
     }
 

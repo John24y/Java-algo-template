@@ -14,6 +14,10 @@ import java.io.IOException;
 class FFT {
     static final double PI = Math.PI;
 
+    /**
+     * 多项式A*B, a[i]表示多项式A的i次项系数
+     * @return C=A*B,c[i]表示i次项的系数
+     */
     static int[] polyMul(int[] a, int[] b) {
         int n = a.length - 1, m = b.length - 1;
         int t = n + m;

@@ -1,6 +1,5 @@
 package main;
 
-
 import java.io.*;
 
 import java.io.BufferedReader;
@@ -12,33 +11,30 @@ import java.util.StringTokenizer;
 class NTT {
     static final int P = 998244353, G = 3, Gi = 332748118;
 
-    static int[] polyMul(int[] a, int[] b) {
-        int N = a.length - 1, M = b.length - 1;
-        int t = N + M;
-        N = Math.max(N, M);
+    static int[] polySquare(int[] a) {
+        int N = a.length - 1;
+        int t = N + N;
         int limit = 1, L = 0;
         while (limit <= (N << 1)) {
             limit <<= 1;
             ++L;
         }
 
-        int[][] A = new int[2][limit + 1];
+        int[] A = new int[limit + 1];
         int[] rev = new int[limit + 1];
-        System.arraycopy(a, 0, A[0], 0, a.length);
-        System.arraycopy(b, 0, A[1], 0, b.length);
+        System.arraycopy(a, 0, A, 0, a.length);
 
         for(int i = 0; i < limit; i++) {
             rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (L - 1));
         }
 
-        NTT(A[0], limit, 1, rev);
-        NTT(A[1], limit, 1, rev);
-        for(int i = 0; i < limit; i++) A[0][i] = (int) (((long)A[0][i] * (long)A[1][i]) % P);
-        NTT(A[0], limit, -1, rev);
+        NTT(A, limit, 1, rev);
+        for(int i = 0; i < limit; i++) A[i] = (int) (((long)A[i] * (long)A[i]) % P);
+        NTT(A, limit, -1, rev);
 
         int[] ans = new int[t + 1];
         long inv = fastpow(limit, P - 2);
-        for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[0][i] * inv) % P);
+        for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[i] * inv) % P);
         return ans;
     }
 
@@ -74,6 +70,7 @@ class NTT {
         return base % P;
     }
 }
+
 public class Main {
 
     public static void main(String[] args) throws IOException {
@@ -85,12 +82,11 @@ public class Main {
             mx=Math.max(mx,v);
             ar[i]=v;
         }
-        int[] a=new int[mx+1],b=new int[mx+1];
+        int[] a=new int[mx+1];
         for (int e : ar) {
             a[e]++;
-            b[e]++;
         }
-        int[] c=NTT.polyMul(a,b);
+        int[] c=NTT.polySquare(a);
         for (int i = 0; i < c.length; i++) {
             if (c[i]>=4) {
                 System.out.println("YES");
