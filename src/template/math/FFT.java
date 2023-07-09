@@ -23,6 +23,7 @@ class FFT {
         int t = n + m;
         n = Math.max(n, m);
         int lim = 1, l = -1;
+        // 为什么lim要大于 n << 1，因为答案是n+m次项的，虽然a最高是n次项，但对a FFT 之后，要代入至少n+m个点
         while (lim <= (n << 1)) {
             lim <<= 1;
             ++l;

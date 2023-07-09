@@ -14,22 +14,7 @@ import java.util.stream.Collectors;
 public class Test {
 
     public static void main(String[] args) {
-        int M = 1000000;
-        for (int j = 0; j < 10; j++) {
-            List<Integer> list = new ArrayList<>(M);
-            int[] ar = new int[M];
-            ThreadLocalRandom random = ThreadLocalRandom.current();
-            for (int i = 0; i < M; i++) {
-                list.add(random.nextInt());
-                ar[i]=random.nextInt();
-            }
-            bench("list", () -> {
-                Collections.sort(list);
-            });
-            bench("ar", () -> {
-                Arrays.sort(ar);
-            });
-        }
+        System.out.println(1 % 5);
     }
 
     static void bench(String mark, Runnable runnable) {

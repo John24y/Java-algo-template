@@ -35,7 +35,7 @@ class Comb {
         return p[n] * pi[n - r] % mod;
     }
 
-    long modinv(long a, long m) {
+    static long modinv(long a, long m) {
         long b = m;
         long u = 1;
         long v = 0;
@@ -57,5 +57,9 @@ class Comb {
         u %= m;
         if (u < 0) u += m;
         return u;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(modinv(2, 998244353));
     }
 }

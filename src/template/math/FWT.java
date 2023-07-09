@@ -1,9 +1,9 @@
-package main;
+package template.math;
 
-import java.io.*;
-import java.util.PriorityQueue;
-import java.util.StringTokenizer;
-
+/**
+ * @Author Create by jiaxiaozheng
+ * @Date 2023/7/9
+ */
 class FWT {
     static final int MOD = 998244353;
     static final int MOD_I2 = 499122177; // 2的逆元
@@ -11,6 +11,9 @@ class FWT {
     static final int CAL_AND = 2;
     static final int CAL_XOR = 3;
 
+    /**
+     * r[i]=sum(a[i]*b[j] for i,j in range(n) if i⊕j=k)
+     */
     static int[] fwtOr(int[] a) { return fwt(a, null, CAL_OR); }
     static int[] fwtAnd(int[] a) { return fwt(a, null, CAL_AND); }
     static int[] fwtXor(int[] a) { return fwt(a, null, CAL_XOR); }
@@ -53,7 +56,7 @@ class FWT {
     }
 
     static int[] ensureLen(int[] a, int len) {
-        //if (a.length == len) return a;
+        if (a.length == len) return a; // 注释掉则每次调用拷贝入参
         int[] tmp = new int[len];
         System.arraycopy(a, 0, tmp, 0, a.length);
         return tmp;
@@ -61,7 +64,6 @@ class FWT {
 
     static void or(int[] a, boolean forward) {
         int x = forward ? 1 : MOD - 1;
-        // l-当前处理子数组长度, k=l//2
         for (int l = 2, k = 1; l <= a.length; l <<= 1, k <<= 1)
             for (int i = 0; i < a.length; i += l)
                 for (int j = 0; j < k; j++)
@@ -87,23 +89,5 @@ class FWT {
                     a[i + j + k] = (int) tmp2;
                 }
     }
-}
-class Solution {
-    public int countPairs(int[] nums, int low, int high) {
-        int mx = nums[0];
-        for (int num : nums) {
-            mx=Math.max(mx,num);
-        }
-        int[] a=new int[mx+1];
-        for (int e : nums) {
-            a[e]++;
-        }
-        int[] c = FWT.fwtXor(a);
-        int res=0;
-        for (int i = low; i <= Math.min(high, c.length-1); i++) {
-            res+=c[i];
-        }
-        return res/2;
-    }
-}
 
+}
