@@ -1,4 +1,4 @@
-package template;
+package template.graph;
 
 class UnionFind {
     int[] fa;

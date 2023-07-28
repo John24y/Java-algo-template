@@ -59,7 +59,4 @@ class Comb {
         return u;
     }
 
-    public static void main(String[] args) {
-        System.out.println(modinv(2, 998244353));
-    }
 }

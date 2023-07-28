@@ -1,9 +1,26 @@
-package template.io;
+package main.at;
 
 import java.io.*;
-import java.util.StringTokenizer;
+import java.util.*;
 
-public class SimpleReaderWriter {
+public class Main {
+    void solve() {
+        long n=readLong();
+        if (n%3==0){
+            System.out.println(n/3L-1);
+        } else {
+            long r=n/3L;
+            r*=2L;
+            if (n%2L==0&&((long)(n/2L))%3L==0)r--;
+            System.out.println(r);
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        new Main().solve();
+        out.flush();
+    }
+
     static PrintWriter out = new PrintWriter(System.out, false);
     static InputReader in = new InputReader(System.in);
     static String next() { return in.next(); }
@@ -30,3 +47,4 @@ public class SimpleReaderWriter {
         }
     }
 }
+
