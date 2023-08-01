@@ -2,40 +2,64 @@ package main.nk3;
 
 import java.io.*;
 import java.util.*;
-
 public class Main {
     public void solve() throws Exception {
-        int n=nextInt(),d=nextInt();
-        if (2*d>=n) {
-            System.out.println("No");
-            return;
+        TreeMap<Long,Long> t1=new TreeMap<>();
+        TreeMap<Long,Long> t2=new TreeMap<>();
+        Set<Long> seg=new HashSet<>();
+        long n=readLong();
+        int m1=readInt(),m2=readInt();
+        long cc=0;
+        for (int i = 0; i < m1; i++) {
+            long u=readLong(),c=readLong();
+            t1.put(cc,u);
+            seg.add(cc);
+            cc+=c;
         }
-        if (((long)n*(n-1)/2<(long)n*d)!=(2*d>=n)){
-            if (n%2==0){
-                throw new RuntimeException();
+        seg.add(cc);
+        cc=0;
+        for (int i = 0; i < m2; i++) {
+            long u=readLong(),c=readLong();
+            t2.put(cc,u);
+            seg.add(cc);
+            cc+=c;
+        }
+        seg.add(cc);
+
+        long res=0;
+        List<Long> segg=new ArrayList<>(seg);
+        Collections.sort(segg);
+        for (int i = 0; i < segg.size() - 1; i++) {
+            long seggLen = segg.get(i+1)-segg.get(i);
+            Map.Entry<Long, Long> e1 = t1.floorEntry(segg.get(i));
+            Map.Entry<Long, Long> e2 = t2.floorEntry(segg.get(i));
+            if (!Objects.equals(e1.getValue(), e2.getValue())){
+                res+=seggLen-1;
             }
-        }
-        System.out.println("Yes");
-        for (int dd = 1; dd <= d; dd++) {
-            for (int i = 1; i < n + 1; i++) {
-                int j=i+dd;
-                if (j>n){
-                    j-=n;
+            if (i!=segg.size()-2) {
+                Set<Long> ss=new HashSet<>();
+                ss.add(e1.getValue());
+                ss.add(e2.getValue());
+                ss.add(t1.floorEntry(segg.get(i+1)).getValue());
+                ss.add(t2.floorEntry(segg.get(i+1)).getValue());
+                if (ss.size()==2){
+                    res++;
                 }
-                System.out.println(i+" "+(j));
             }
         }
+        out.println(res);
     }
 
     public static void main(String[] args) throws Exception {
         new Main().solve();
+        out.flush();
     }
 
-    static PrintWriter out = new PrintWriter(System.out, true);
+    static PrintWriter out = new PrintWriter(System.out, false);
     static InputReader in = new InputReader(System.in);
     static String next() { return in.next(); }
-    static int nextInt() { return Integer.parseInt(in.next()); }
-    static long nextLong() { return Long.parseLong(in.next()); }
+    static int readInt() { return Integer.parseInt(in.next()); }
+    static long readLong() { return Long.parseLong(in.next()); }
     static class InputReader {
         public BufferedReader reader;
         public StringTokenizer tokenizer;

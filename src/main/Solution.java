@@ -1,236 +1,76 @@
 package main;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-class MaxValSegTree {
+import java.util.*;
 
-    class Node {
-        Node left;
-        Node right;
-        long lazyAdd;
-        long sum;
-        int ls, rs;//debug用
-        int maxId;//值最大且index最小的index
-        long maxVal;
+/**
+ * 存在合并限制的并查集，如果两颗子树包含相同的banKey，则不能合并。
+ * 启发式合并的复杂度。
+ */
+class RestrictMergeUnionFind {
+    int[] fa;
+    int[] sz;//包含节点数量
+    List<Set<Integer>> banKey=new ArrayList<>();//含有相同banKey的子树不能合并
+
+    public RestrictMergeUnionFind(int n, List<Set<Integer>> banKeyList) {
+        fa=new int[n+1];
+        sz=new int[n+1];
+        for (int i = 0; i <= n; i++) {
+            fa[i]=i;
+            sz[i]=1;
+        }
+        banKey=banKeyList;
     }
 
-    int maxN;
-    Node root;
-
-    public MaxValSegTree(int maxN) {
-        this.maxN = maxN;
-        this.root = createNode(0, maxN);
-        root.ls = 0;
-        root.rs = maxN;
+    int find(int x) {
+        if (fa[x]!=x){
+            fa[x]=find(fa[x]);
+        }
+        return fa[x];
     }
 
-    Node createNode(int ls, int rs) {
-        Node r = new Node();
-        r.maxId = ls;
-        return r;
-    }
-
-    /**
-     * 添加val到当前node的整个区间，不用下发
-     */
-    private void addLazy(Node node, int ls, int rs, long val) {
-        node.lazyAdd += val;
-        node.sum += (rs - ls + 1) * val;
-        node.maxVal += val;
-    }
-
-    /**
-     * child修改后，更新统计到当前node，node中可以有多个需要reduce的字段. 此时Node的lazy值已下发。
-     */
-    void reduce(Node node, int ls, int rs) {
-        node.sum = node.left.sum + node.right.sum;
-        if (node.right.maxVal > node.left.maxVal) {
-            node.maxId = node.right.maxId;
-            node.maxVal = node.right.maxVal;
-        } else {
-            node.maxId = node.left.maxId;
-            node.maxVal = node.left.maxVal;
+    boolean union(int i, int j) {
+        int f1=find(fa[i]);
+        int f2=find(fa[j]);
+        if (f1>f2){
+            int t=f2;
+            f2=f1;
+            f1=t;
         }
-    }
-
-    public void add(int l, int r, long val) {
-        add(root, l, r, val, 0, maxN);
-    }
-
-    /**
-     * 当前Node的范围: [ls,rs]
-     */
-    private void add(Node node, int l, int r, long val, int ls, int rs) {
-        if (l < 0 || r > maxN) {
-            throw new IllegalArgumentException();
+        if (f1==f2)return true;
+        Set<Integer> s1 = banKey.get(f1);
+        Set<Integer> s2 = banKey.get(f2);
+        if (s1.size()>s2.size()) {
+            Set<Integer> t=s1;
+            s1=s2;
+            s2=t;
         }
-        if (l <= ls && rs <= r) {
-            //[l,r]覆盖了当前子树
-            addLazy(node, ls, rs, val);
-            return;
+        for (Integer b : s2) {
+            if (s1.contains(b)) return false;
         }
-
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        //左子树[ls,mid]
-        //右子树[mid+1,rs]
-        if (l <= mid) {
-            add(node.left, l, r, val, ls, mid);
-        }
-        if (r >= mid + 1) {
-            add(node.right, l, r, val, mid + 1, rs);
-        }
-        reduce(node, ls, rs);
-    }
-
-    //下发lazy值
-    void pushDown(Node node, int ls, int rs) {
-        int mid = ls + rs >> 1;
-        if (node.left == null) {
-            node.left = createNode(ls, mid);
-            node.left.ls = ls;
-            node.left.rs = mid;
-        }
-        if (node.right == null) {
-            node.right = createNode(mid + 1, rs);
-            node.right.ls = mid + 1;
-            node.right.rs = rs;
-        }
-        if (node.lazyAdd != 0) {
-            //lazy是当前节点已经算了，但是还没下发child的
-            addLazy(node.left, ls, mid, node.lazyAdd);
-            addLazy(node.right, mid + 1, rs, node.lazyAdd);
-            node.lazyAdd = 0;
-        }
-    }
-
-    public long sum(int l, int r) {
-        return sum(root, l, r, 0, maxN);
-    }
-
-    private long sum(Node node, int l, int r, int ls, int rs) {
-        if (l < 0 || r > maxN) {
-            throw new IllegalArgumentException();
-        }
-        if (l <= ls && rs <= r) {
-            return node.sum;
-        }
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        long res = 0;
-        if (l <= mid) {
-            res += sum(node.left, l, r, ls, mid);
-        }
-        if (r >= mid + 1) {
-            res += sum(node.right, l, r, mid + 1, rs);
-        }
-        return res;
-    }
-
-    //查询最大值
-    public long queryMaxVal(int l, int r) {
-        tmpMaxId = -1;
-        tmpMaxVal = Long.MIN_VALUE;
-        queryMaxId(root, l, r, 0, maxN);
-        return tmpMaxVal;
-    }
-
-    //查询最大值的下标，如果有多个则取下标最小的
-    public int queryMaxId(int l, int r) {
-        tmpMaxId = -1;
-        tmpMaxVal = Long.MIN_VALUE;
-        queryMaxId(root, l, r, 0, maxN);
-        return tmpMaxId;
-    }
-
-    int tmpMaxId;
-    long tmpMaxVal;
-
-    private void queryMaxId(Node node, int l, int r, int ls, int rs) {
-        if (l <= ls && rs <= r) {
-            if (tmpMaxId == -1 || node.maxVal > tmpMaxVal || node.maxVal == tmpMaxVal && node.maxId < tmpMaxId) {
-                tmpMaxId = node.maxId;
-                tmpMaxVal = node.maxVal;
-            }
-            return;
-        }
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        if (l <= mid) {
-            queryMaxId(node.left, l, r, ls, mid);
-        }
-        if (r >= mid + 1) {
-            queryMaxId(node.right, l, r, mid + 1, rs);
-        }
-    }
-
-    /**
-     * 查询[l,r]上第一个>x的下标
-     *
-     * @param fromLeft true 找左边第一个，false 找右边第一个
-     * @return -1 表示找不到
-     */
-    public int queryFirstGreater(int l, int r, int x, boolean fromLeft) {
-        int[] order = fromLeft ? new int[]{0, 1} : new int[]{1, 0};
-        return queryFirstGreater(root, l, r, x, order, 0, maxN);
-    }
-
-    private int queryFirstGreater(Node node, int l, int r, int x, int[] order, int ls, int rs) {
-        int mid = ls + rs >> 1;
-        if (node.maxVal <= x) {
-            return -1;
-        }
-        if (ls == rs) {
-            return ls;
-        }
-        pushDown(node, ls, rs);
-
-        for (int ord : order) {
-            if (ord == 0 && l <= mid) {
-                int ret = queryFirstGreater(node.left, l, r, x, order, ls, mid);
-                if (ret != -1) {
-                    return ret;
-                }
-            }
-            if (ord == 1 && r >= mid + 1) {
-                int ret = queryFirstGreater(node.right, l, r, x, order, mid + 1, rs);
-                if (ret != -1) {
-                    return ret;
-                }
-            }
-        }
-        return -1;
-    }
-
-    public boolean reduceTopK(int k) {
-        long v = sum(k, k);
-        if (v<=0) {
-            return false;
-        }
-        int r2=queryFirstGreater(1,maxN, (int) v-1,false);
-        int r1=queryFirstGreater(1,maxN, (int) v,false);
-        if (r1==-1) r1=0;
-        add(0,r1, -1);
-        add(r2-(k-r1)+1,r2, -1);
+        s1.addAll(s2);
+        banKey.set(f1,s1);
+        fa[f2]=f1;
+        sz[f1]+=sz[f2];
         return true;
     }
-}
 
+}
 class Solution {
-    public int maxIncreasingGroups(List<Integer> usageLimits) {
-        int n=usageLimits.size();
-        MaxValSegTree t = new MaxValSegTree(n+1);
-        Collections.sort(usageLimits);
-        Collections.reverse(usageLimits);
-        for (int i = 0; i < usageLimits.size(); i++) {
-            Integer e = usageLimits.get(i);
-            t.add(i+1,i+1,e);
+    public boolean[] friendRequests(int n, int[][] restrictions, int[][] requests) {
+        boolean[] res=new boolean[requests.length];
+        List<Set<Integer>> banKeys = new ArrayList<>();
+        for (int i = 0; i < n + 1; i++) {
+            banKeys.add(new HashSet<>());
         }
-        for (int i = 1; ; i++) {
-            if (!t.reduceTopK(i)) {
-                return i - 1;
-            }
+        for (int i = 0; i < restrictions.length; i++) {
+            int a=restrictions[i][0],b=restrictions[i][1];
+            banKeys.get(a).add(i);
+            banKeys.get(b).add(i);
         }
+        RestrictMergeUnionFind find = new RestrictMergeUnionFind(n,banKeys);
+        for (int i = 0; i < requests.length; i++) {
+            res[i]= find.union(requests[i][0],requests[i][1]);
+        }
+        return res;
     }
 }
