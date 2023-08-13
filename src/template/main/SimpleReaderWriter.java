@@ -1,4 +1,4 @@
-package template.io;
+package template.main;
 
 import java.io.*;
 import java.util.StringTokenizer;

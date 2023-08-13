@@ -4,57 +4,40 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    List<List<Integer>> g=new ArrayList<>();
-    int[] cnt;
     void solve() {
-        int n=readInt();
-        cnt=new int[n+1];
-        for (int i = 0; i < n + 1; i++) {
-            g.add(new ArrayList<>());
-        }
-        for (int i = 1; i < n; i++) {
-            int a=readInt(),b=readInt();
-            g.get(a).add(b);
-            g.get(b).add(a);
-        }
-        dfs(1,0);
-        dfs2(1,0,0);
-        System.out.println(ans);
-    }
-    long ans=0;
-
-    void dfs(int i, int p) {
-        int res=1;
-        for (Integer ch : g.get(i)) {
-            if (ch==p)continue;
-            dfs(ch,i);
-            res+=cnt[ch];
-        }
-        cnt[i]=res;
-    }
-
-    void dfs2(int i, int p, int pCnt) {
-        List<Integer> sz=new ArrayList<>();
-        sz.add(pCnt);
-        for (Integer ch : g.get(i)) {
-            if (ch==p)continue;
-            sz.add(cnt[ch]);
-        }
-        long sum=0;
-        long[][] dp=new long[sz.size()+1][4];
-        dp[0][0]=1;
-        for (int j = 0; j < sz.size(); j++) {
-            sum+=sz.get(j);
-            dp[j+1][0]=1;
-            for (int k = 1; k < 4; k++) {
-                dp[j+1][k]+=dp[j][k-1]*sz.get(j);
-                dp[j+1][k]+=dp[j][k];
+        int n=readInt(),m=readInt();
+        List<List<Integer>> S=new ArrayList<>();
+        double[] C=new double[n+1];
+        int[] P=new int[n+1];
+        for (int i = 0; i < n; i++) {
+            S.add(new ArrayList<>());
+            C[i]=readInt();
+            P[i]=readInt();
+            int z=0;
+            for (int j = 0; j < P[i]; j++) {
+                int v=readInt();
+                if (v==0){
+                    z++;
+                } else {
+                    S.get(i).add(v);
+                }
+            }
+            if (P[i]-z==0) {
+                C[i]=P[i]=0;
+            } else {
+                C[i]=C[i]* (double) P[i]/(double)(P[i]-z);
+                P[i]-=z;
             }
         }
-        ans+=dp[sz.size()][3];
-        for (Integer ch : g.get(i)) {
-            if (ch==p)continue;
-            dfs2(ch, i, (int)sum-cnt[ch]+1);
+
+        double[] dp=new double[m+1];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                
+                for (int k = 0; k < P[i]; k++) {
+
+                }
+            }
         }
     }
 
