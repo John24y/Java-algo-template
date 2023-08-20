@@ -18,6 +18,22 @@ public class MathTemplate {
         return gcd(b % a, a);
     }
 
+    /**
+     * x=xy[0],y=xy[1]
+     * 求解a*x+b*y=gcd(a,b)的一组特解
+     */
+    public static long exgcd(long a, long b, long[] xy) {
+        if (b == 0) {
+            xy[0] = 1;
+            xy[1] = 0;
+            return a;
+        }
+        long g = exgcd(b, a % b, xy);
+        long temp = xy[0];
+        xy[0] = xy[1];
+        xy[1] = temp - a / b * xy[0];
+        return g;
+    }
 
     /**
      * 求逆元，m必须是素数
