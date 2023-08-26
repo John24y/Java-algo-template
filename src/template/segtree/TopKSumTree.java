@@ -3,7 +3,7 @@ package template.segtree;
 /**
  * tree[i]表示i在数组中出现的次数。可单点更新并查询数组的前k大之和。
  *
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/6/18
  */
 class TopKSumTree {

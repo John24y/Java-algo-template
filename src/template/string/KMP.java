@@ -3,7 +3,7 @@ package template.string;
 import java.util.Arrays;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/3/3
  */
 class KMP {

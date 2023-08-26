@@ -1,7 +1,7 @@
 package template.segtree;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/2/19
  */
 class SegTreeTemplate {

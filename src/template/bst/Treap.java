@@ -3,7 +3,7 @@ package template.bst;
 import java.util.Random;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/7/28
  */
 class Treap {

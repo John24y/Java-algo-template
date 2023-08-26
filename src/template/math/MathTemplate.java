@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/1/23
  */
 public class MathTemplate {

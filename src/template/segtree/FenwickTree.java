@@ -1,7 +1,7 @@
 package template.segtree;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2022/10/3
  */
 class FenwickTree {

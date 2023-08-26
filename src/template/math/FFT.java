@@ -8,7 +8,7 @@ import java.io.IOException;
  * 要改成double[2][N]才能减少创建对象，分配连续内存，提高CPU缓存行命中率。实测效果从11s提升到了3.6s。
  * ● 用快读快写。不要用Stream拼接输出结果，可以快约0.5s
  *
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/6/23
  */
 class FFT {

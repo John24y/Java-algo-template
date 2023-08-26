@@ -1,4 +1,4 @@
-package main.nk2;
+package main.nk_fastio;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -3,7 +3,7 @@ package template.segtree;
 /**
  * 主席树，只支持单点更新，可查询排名
  *
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/4/29
  */
 class RankDiffSegTree {

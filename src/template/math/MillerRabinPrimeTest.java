@@ -5,7 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Miller-Rabin素性测试
  *
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/5/20
  */
 class MillerRabinPrimeTest {

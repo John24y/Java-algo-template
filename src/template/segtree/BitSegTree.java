@@ -3,7 +3,7 @@ package template.segtree;
 /**
  * 每个下标只能储存0或1。支持区间赋值为0或1、区间翻转01、区间求和
  *
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/3/12
  */
 public class BitSegTree {

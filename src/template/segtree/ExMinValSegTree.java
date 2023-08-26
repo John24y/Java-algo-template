@@ -3,7 +3,7 @@ package template.segtree;
 /**
  * - 支持查询区间上第一个<x的值，可以从左边找，也可以从右边找
  *
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/7/28
  */
 public class ExMinValSegTree extends MinValSegTree {

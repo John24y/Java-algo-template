@@ -1,7 +1,7 @@
 package template.math;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2023/4/14
  */
 class Comb {

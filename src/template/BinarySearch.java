@@ -3,7 +3,7 @@ package template;
 import java.util.function.IntPredicate;
 
 /**
- * @Author Create by jiaxiaozheng
+ * @Author Create by CROW
  * @Date 2022/9/20
  */
 public class BinarySearch {
