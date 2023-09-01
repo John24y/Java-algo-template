@@ -1,6 +1,6 @@
 package template.string;
 
-//如果出现hash冲突，可用不同的fact创建多个此类对象。或者用随机哈希fact。
+//有些题目会卡hash冲突，比如用比较小的字符基数。这种可以用不同的fact创建多个hash，然后 (a<<31)|b
 class StringHash {
     long[] hash;
     long[] p;
@@ -24,10 +24,8 @@ class StringHash {
         }
     }
 
-    public long hash(int leftInclusive, int rightExclusive) {
-        int li=leftInclusive+1,ri=rightExclusive,len=rightExclusive-leftInclusive;
-        //li,ri是闭区间在hash数组上的下标
-        //只要减去hash[li-1]在区间[li,ri]上的积累即可, +mod是为了防负数
-        return (hash[ri]-hash[li-1]*p[len]%mod+mod)%mod;
+    //[L,R)
+    public long hash(int l, int r) {
+        return (hash[r]-hash[l]*p[r-l]%mod+mod)%mod;
     }
 }

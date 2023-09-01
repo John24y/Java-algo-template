@@ -23,10 +23,7 @@ class SA {
 
     /**
      * time: O(nlogn)
-     *
-     * @return returns [sa,rk]. First of all, we represent a suffix by its start index.
-     * then sa[i] is the i-th small suffix (1<=i<=n),
-     * rk[i] is the rank of suffix i (1<=i<=n).
+     * @return [sa,rk]. 用开始下标表示后缀字符串，sa[i]是第i小后缀，rk[i]是后缀i的排名 (1<=i<=n)
      */
     public int[][] sa() {
         int n = s.length(), p = 0, w = 0, i = 0;
