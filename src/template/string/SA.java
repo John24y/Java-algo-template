@@ -1,5 +1,10 @@
 package template.string;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 /**
  * @Author Create by CROW
  * @Date 2022/10/11
@@ -8,7 +13,7 @@ class SA {
 
     String s;
     int n, m;
-    int[] sa, rk, oldrk, tmpsa, cnt;
+    int[] sa, rk, oldrk, tmpsa, cnt, height;
 
     public SA(String s) {
         this.s = s;
@@ -19,13 +24,16 @@ class SA {
         cnt = new int[Math.max(n, m) + 2];
         tmpsa = new int[Math.max(n, m) + 2];//+1会WA??
         oldrk = new int[2 * Math.max(n, m) + 2];
+        sa();
     }
 
     /**
      * time: O(nlogn)
-     * @return [sa,rk]. 用开始下标表示后缀字符串，sa[i]是第i小后缀，rk[i]是后缀i的排名 (1<=i<=n)
+     * 用开始下标表示后缀字符串 (1<=i<=n)
+     * sa[i]是第i小后缀 (sa of i-th smallest)
+     * rk[i]是后缀i的排名 (rk of suffix i)
      */
-    public int[][] sa() {
+    private void sa() {
         int n = s.length(), p = 0, w = 0, i = 0;
         for (i = 1; i <= n; i++) {
             //tmpsa是按照第2关键字排序后的sa，第一轮排序用不到，可随意初始化
@@ -59,10 +67,7 @@ class SA {
                 break;
             }
         }
-
-        return new int[][]{sa, rk};
     }
-
 
     private void radixSort() {
         java.util.Arrays.fill(cnt, 0);
@@ -73,5 +78,78 @@ class SA {
         for (int i = n; i >= 1; i--) sa[cnt[rk[tmpsa[i]]]--] = tmpsa[i];
     }
 
+    /**
+     * height[i]表示 sa[i] 与 sa[i-1] 的最长公共前缀
+     */
+    public int[] height() {
+        height = new int[n+1];
+        int h=0;
+        for (int i = 1; i <= n; i++) {
+            if (rk[i]==1) continue;
+            if (h>0) h--;
+            int j = sa[rk[i]-1];
+            while (i+h<=n && j+h<=n && s.charAt(i+h-1) == s.charAt(j+h-1)){
+                h++;
+            }
+            height[rk[i]]=h;
+        }
+        return height;
+    }
+
 }
+
+class SAUtils {
+    /**
+     * 返回长度为m的所有相同子串
+     * 返回多组下标(0-indexed)，每一组都是长度为m的相同子串的下标
+     */
+    public List<List<Integer>> equalSubStr(String s, int m) {
+        SA sa = new SA(s);
+        int n = s.length();
+        int[] height = sa.height();
+        List<List<Integer>> ans = new ArrayList<>();
+        for (int i = 1; i <= n; ) {
+            if (sa.sa[i] + m > n + 1) {
+                //跳过长度不足m的后缀
+                ++i;
+                continue;
+            }
+            int j = i+1;
+            List<Integer> same = new ArrayList<>();
+            same.add(sa.sa[i]);
+            for (;j <= n && height[j]>=m; j++) {
+                same.add(sa.sa[j]);
+            }
+            Collections.sort(same);
+            ans.add(same);
+            i=j;
+        }
+        return ans;
+    }
+
+    /**
+     * z函数，z[i]表示suf[i]和suf[0]的LCP（最长公共前缀）
+     */
+    public int[] z(String s) {
+        SA sa = new SA(s);
+        int[] height = sa.height();
+        int n = s.length();
+        int i = sa.rk[1];
+        int[] z = new int[n];
+        z[0] = n;
+        int h = Integer.MAX_VALUE;
+        for (int j = i + 1; j <= n; j++) {
+            h = Math.min(h, height[j]);
+            z[sa.sa[j] - 1] = h;
+        }
+        h = Integer.MAX_VALUE;
+        for (int j = i; j > 1; j--) {
+            h = Math.min(h, height[j]);
+            z[sa.sa[j - 1] - 1] = h;
+        }
+        return z;
+    }
+
+}
+
 
