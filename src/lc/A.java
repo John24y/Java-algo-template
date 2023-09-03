@@ -2,126 +2,112 @@ package lc;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Author Create by CROW
  * @Date 2023/2/15
  */
 public class A {
-class SA {
+    class BinaryLiftingLCA {
+        List<List<Integer>> graph;
+        int[][] up;//up[b][i] 节点i向上走2^b步
+        int[] depth;
+        int MB = 30;
 
-    String s;
-    int n, m;
-    int[] sa, rk, oldrk, tmpsa, cnt, height;
-
-    public SA(String s) {
-        this.s = s;
-        n = s.length();
-        m = 128;
-        sa = new int[Math.max(n, m) + 1];
-        rk = new int[Math.max(n, m) + 1];
-        cnt = new int[Math.max(n, m) + 2];
-        tmpsa = new int[Math.max(n, m) + 2];//+1会WA??
-        oldrk = new int[2 * Math.max(n, m) + 2];
-        sa();
-    }
-
-    /**
-     * time: O(nlogn)
-     * 用开始下标表示后缀字符串 (1<=i<=n)
-     * sa[i]是第i小后缀 (sa of i-th smallest)
-     * rk[i]是后缀i的排名 (rk of suffix i)
-     */
-    private void sa() {
-        int n = s.length(), p = 0, w = 0, i = 0;
-        for (i = 1; i <= n; i++) {
-            //tmpsa是按照第2关键字排序后的sa，第一轮排序用不到，可随意初始化
-            tmpsa[i] = i;
-            rk[i] = s.charAt(i - 1);
+        BinaryLiftingLCA(List<List<Integer>> graph) {
+            this.graph = graph;
+            int n = graph.size();
+            up = new int[MB+1][n];
+            depth = new int[n];
+            dfs(0, -1);
         }
-        radixSort();
-        // m=p 就是优化计数排序值域
-        for (w = 1; ; w <<= 1, m = p) {
-            //按照第2关键字排序，最后w个后缀没有第2关键字(关键字为0)，字典序最小，所以放在最前面
-            for (p = 0, i = n; i > n - w; --i) tmpsa[++p] = i;
-            //剩下的后缀要保留上一轮的排序，按照上轮名次枚举。
-            //检查当前rk是否可做为某个后缀的第2关键字，应该刚好有n-w个rk满足条件
-            for (i = 1; i <= n; ++i) if (sa[i] > w) tmpsa[++p] = sa[i] - w;
 
-            radixSort();
-            System.arraycopy(rk, 0, oldrk, 0, rk.length);
-            //把sa翻译到rk，2个关键字都相同的后缀，rk要一样
-            for (p = 0, i = 1; i <= n; i++) {
-                //还需要上一轮的rk数组来对比是否相同大小的后缀
-                if (oldrk[sa[i]] == oldrk[sa[i - 1]] && oldrk[sa[i] + w] == oldrk[sa[i - 1] + w]) {
-                    rk[sa[i]] = p;
+        void dfs(int u, int p) {
+            up[0][u] = p;
+            depth[u] = p == -1 ? 0 : depth[p] + 1;
+            for (int b = 1; b <= MB; b++) {
+                int ancestor = up[b - 1][u];
+                if (ancestor == -1) {
+                    up[b][u] = -1;
                 } else {
-                    rk[sa[i]] = ++p;
+                    up[b][u] = up[b - 1][ancestor];
                 }
             }
-            if (p == n) {
-                //如果有n个不同的名次了，可以提前返回结果。
-                //w是倍增的，当w超过n时，按第2关键字排完顺序不变，再按第1关键字排完必然得到n个不同名次。
-                for (i = 1; i <= n; ++i) sa[rk[i]] = i;
-                break;
+            for (Integer ch : graph.get(u)) {
+                if (ch == p) continue;
+                dfs(ch, u);
             }
         }
-    }
 
-    private void radixSort() {
-        java.util.Arrays.fill(cnt, 0);
-        for (int i = 1; i <= n; i++) ++cnt[rk[i]];
-        for (int i = 1; i <= m; i++) cnt[i] += cnt[i - 1];
-        //tmpsa是按照第2关键字排序后的sa，此时要做按照第1关键字做稳定排序
-        //因为是稳定排序，所以必须按照tmpsa中的顺序来遍历suffix，然后放到新的sa数组中
-        for (int i = n; i >= 1; i--) sa[cnt[rk[tmpsa[i]]]--] = tmpsa[i];
-    }
-
-    /**
-     * height[i]表示 sa[i] 与 sa[i-1] 的最长公共前缀
-     */
-    public int[] height() {
-        height = new int[n+1];
-        int h=0;
-        for (int i = 1; i <= n; i++) {
-            if (rk[i]==1) continue;
-            if (h>0) h--;
-            int j = sa[rk[i]-1];
-            while (i+h<=n && j+h<=n && s.charAt(i+h-1) == s.charAt(j+h-1)){
-                h++;
+        int levelUp(int u, int lv) {
+            for (int i = MB; i >= 0; i--) {
+                if ((lv & (1 << i)) > 0) {
+                    u = up[i][u];
+                }
             }
-            height[rk[i]]=h;
+            return u;
         }
-        return height;
-    }
 
-}
+        int lca(int u, int v) {
+            if (depth[u] < depth[v]) {
+                return lca(v, u);
+            }
+            u = levelUp(u, depth[u] - depth[v]);
+            if (u == v) return u;
+            for (int i = MB; i >= 0; i--) {
+                if (up[i][u] == up[i][v]) continue;
+                u = up[i][u];
+                v = up[i][v];
+            }
+            return up[0][u];
+        }
+    }
     class Solution {
-        public int[] z(String s) {
-            SA sa = new SA(s);
-            int[] height = sa.height();
-            int n=s.length();
-            int i=sa.rk[1];
-            int[] z=new int[n];
-            z[0]=n;
-            int h=Integer.MAX_VALUE;
-            for (int j = i + 1; j <= n; j++) {
-                h=Math.min(h,height[j]);
-                z[sa.sa[j]-1]=h;
+        int[][] wsum;
+        public int[] minOperationsQueries(int n, int[][] edges, int[][] queries) {
+            wsum=new int[n][27];
+            List<List<int[]>> g=new ArrayList<>();
+            List<List<Integer>> graph=new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                g.add(new ArrayList<>());
+                graph.add(new ArrayList<>());
             }
-            h=Integer.MAX_VALUE;
-            for (int j = i; j > 1 ; j--) {
-                h=Math.min(h,height[j]);
-                z[sa.sa[j-1]-1]=h;
+            for (int[] edge : edges) {
+                g.get(edge[0]).add(new int[]{edge[1],edge[2]});
+                g.get(edge[1]).add(new int[]{edge[0],edge[2]});
+                graph.get(edge[0]).add(edge[1]);
+                graph.get(edge[1]).add(edge[0]);
             }
-            return z;
+            dfs(0,-1,new int[27],g);
+            BinaryLiftingLCA lca = new BinaryLiftingLCA(graph);
+            int[] ans=new int[queries.length];
+            for (int i = 0; i < queries.length; i++) {
+                int[] t=new int[27];
+                int total = 0, mx = 0;
+                for (int j = 0; j < 27; j++) {
+                    t[j]+=wsum[queries[i][0]][j];
+                    t[j]+=wsum[queries[i][1]][j];
+                    t[j]-=wsum[lca.lca(queries[i][0],queries[i][1])][j]*2;
+                    total+=t[j];
+                    mx = Math.max(mx, t[j]);
+                }
+                ans[i]=total-mx;
+            }
+            return ans;
         }
 
-        public long sumScores(String s) {
-            int[] z=z(s);
-            return Arrays.stream(z).mapToLong(x->x).sum();
+        void dfs(int i, int p, int[] path, List<List<int[]>> g) {
+            System.arraycopy(path, 0, wsum[i], 0, 27);
+            for (int[] ch : g.get(i)) {
+                if (ch[0]==p)continue;
+                path[ch[1]]++;
+                dfs(ch[0],i,path,g);
+                path[ch[1]]--;
+            }
         }
     }
+
     public static void main(String[] args) {
 //        int score = new Solution().maximumScore(Arrays.asList(8, 3, 9, 3, 8), 2);
 //        System.out.println(score);
