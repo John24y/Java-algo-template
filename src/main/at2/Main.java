@@ -1,25 +1,29 @@
-package main.at;
-import java.util.*;
+package main.at2;
+
 import java.io.*;
+import java.util.*;
+
+/**
+ * 最大二分图匹配
+ * 左侧点数为n，右侧点数为m，为左侧每个点找到一个匹配，左右侧任一点只能匹配一个。
+ */
 class BipartiteMatching {
     List<List<Integer>> g;
-    int[] pa, pb, was;
-    int n, m, res, iter;
+    int[] pa, pb;
+    int n, m;
+    boolean[] vis;
 
     public BipartiteMatching(int _n, int _m) {
         n = _n;
         m = _m;
         pa = new int[n];
         pb = new int[m];
-        was = new int[n];
         Arrays.fill(pa, -1);
         Arrays.fill(pb, -1);
         g = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             g.add(new ArrayList<>());
         }
-        res = 0;
-        iter = 0;
     }
 
     public void add(int from, int to) {
@@ -27,7 +31,7 @@ class BipartiteMatching {
     }
 
     public boolean dfs(int v) {
-        was[v] = iter;
+        vis[v]=true;
         for (int u : g.get(v)) {
             if (pb[u] == -1) {
                 pa[v] = u;
@@ -36,7 +40,7 @@ class BipartiteMatching {
             }
         }
         for (int u : g.get(v)) {
-            if (was[pb[u]] != iter && dfs(pb[u])) {
+            if (!vis[pb[u]] && dfs(pb[u])) {
                 pa[v] = u;
                 pb[u] = v;
                 return true;
@@ -46,32 +50,20 @@ class BipartiteMatching {
     }
 
     public int solve() {
-        while (true) {
-            iter++;
-            int add = 0;
-            for (int i = 0; i < n; i++) {
-                was=new int[n];
-                Arrays.fill(was, -1);
-                if (pa[i] == -1 && dfs(i)) {
-                    add++;
-                }
+        int ans=0;
+        for (int i = 0; i < n; i++) {
+            vis=new boolean[n];
+            if (dfs(i)) {
+                ans++;
             }
-            if (iter>1 && add>0) {
-                throw new RuntimeException();
-            }
-            if (add == 0) {
-                break;
-            }
-            res += add;
         }
-        return res;
+        return ans;
     }
 }
 
-
-
 public class Main {
-        public void solve() throws Exception {
+
+    public void solve() throws Exception {
         int n=nextInt(),m=nextInt();
         List<List<List<Integer>>> ar=new ArrayList<>();
         for (int i = 0; i < n; i++) {
@@ -84,11 +76,13 @@ public class Main {
                 ar.get(i).get(s.charAt(j)-'0').add(j);
             }
         }
-        int lo=0,hi=n*m;
+        //注意题目中时间是0-indexed
+        int lo=n-1,hi=n*m;
         while (lo<=hi){
             int mid=lo+hi>>1;
             boolean succ=false;
             outer:
+            //遍历所有d，理论复杂度是超了一个10，达到1e8，但不知道为什么能过，可能是数据的局限性，mid小的时候边数很小，mid大的时候只需要尝试很少的d就可以
             for (int d = 0; d <= 9; d++) {
                 List<List<Integer>> graph = new ArrayList<>(n);
                 int bc=0;
@@ -100,7 +94,11 @@ public class Main {
                     if (li.isEmpty()) {
                         continue outer;
                     }
+                    //对每个reel找一个时间，总共n个reel，每个reel最大可以连接到n*m个时间
+                    //但图模型不需要真的连接到n*m，如果每个reel都连接到n个时间，可以证明二分匹配是必有解的，所以每个reel只需取n条边
+                    //如果存在边数不足n的reel，又对边数超过n的reel剪枝，也能得到最优解吗？答案是可以，不影响
                     for (int j = 0; j < n; j++) {
+                        //对时间离散化
                         int time=li.get(j%sz)+(j/sz)*m;
                         if (time<=mid){
                             if (!bs.containsKey(time)) {
@@ -110,13 +108,8 @@ public class Main {
                         }
                     }
                 }
-
                 BipartiteMatching matching = new BipartiteMatching(n, bs.size());
-                for (int i = 0; i < n; i++) {
-                    for (int j : graph.get(i)) {
-                        matching.add(i, j);
-                    }
-                }
+                matching.g = graph;
                 if (matching.solve()==n) {
                     succ=true;
                     break;
@@ -128,9 +121,8 @@ public class Main {
                 lo=mid+1;
             }
         }
-        out.println(lo>n*m?-1:lo);
+        out.println(lo>=n*m?-1:lo);
     }
-
 
     public static void main(String[] args) throws Exception {
         new Main().solve();
@@ -163,5 +155,4 @@ public class Main {
         }
     }
 }
-
 

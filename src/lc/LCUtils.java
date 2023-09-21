@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 public class LCUtils {
     private static Scanner scanner = new Scanner(System.in);
 
-    public static int[] readInts() {
+    public static int[] nextInts() {
         return parseIntAr(scanner.nextLine());
     }
 

@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class GraphTemplate {
 
-    static int readInt() { throw new UnsupportedOperationException(); };
+    static int nextInt() { throw new UnsupportedOperationException(); };
 
     public List<List<Integer>> readGraph(int nVertex, int mEdge) {
         List<List<Integer>> g=new ArrayList<>();
@@ -17,7 +17,7 @@ public class GraphTemplate {
             g.add(new ArrayList<>());
         }
         for (int i = 0; i < mEdge; i++) {
-            int a=readInt(),b=readInt();
+            int a=nextInt(),b=nextInt();
             g.get(a).add(b);
             g.get(b).add(a);
         }

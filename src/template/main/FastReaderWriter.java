@@ -14,9 +14,9 @@ class FastInput {
         this.is = is;
     }
 
-    public void readInt(int[] data) {
+    public void nextInt(int[] data) {
         for (int i = 0; i < data.length; i++) {
-            data[i] = readInt();
+            data[i] = nextInt();
         }
     }
 
@@ -41,19 +41,19 @@ class FastInput {
         }
     }
 
-    public int[] readInts(int n) {
+    public int[] nextInts(int n) {
         int[] ans = new int[n];
-        readInt(ans);
+        nextInt(ans);
         return ans;
     }
 
-    public int readInt() {
-        long l = readLong();
+    public int nextInt() {
+        long l = nextLong();
         if (l > Integer.MAX_VALUE || l < Integer.MIN_VALUE) throw new RuntimeException("int overflow!");
         return (int) l;
     }
 
-    public long readLong() {
+    public long nextLong() {
         boolean rev = false;
         skipBlank();
         if (next == '+' || next == '-') {
@@ -139,7 +139,7 @@ public class FastReaderWriter {
     static FastInput in = new FastInput(System.in);
     static FastOutput out = new FastOutput(System.out);
     static String readString() { return in.readString(); }
-    static int readInt() { return in.readInt(); }
-    static long readLong() { return in.readLong(); }
+    static int nextInt() { return in.nextInt(); }
+    static long nextLong() { return in.nextLong(); }
 
 }

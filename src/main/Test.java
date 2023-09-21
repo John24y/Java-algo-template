@@ -14,7 +14,10 @@ import java.util.stream.Collectors;
 public class Test {
 
     public static void main(String[] args) {
-        System.out.println(1 % 5);
+        int[] a = new int[]{1, 1, 2, 2, 2, 2, 2, 3};
+        System.out.println(Arrays.binarySearch(a, 2));
+        List<Integer> list = Arrays.asList(1, 1, 2, 2, 2, 2, 2, 3);
+        System.out.println(Collections.binarySearch(list, 2));
     }
 
     static void bench(String mark, Runnable runnable) {

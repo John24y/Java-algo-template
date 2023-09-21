@@ -7,8 +7,8 @@ public class SimpleReaderWriter {
     static PrintWriter out = new PrintWriter(System.out, false);
     static InputReader in = new InputReader(System.in);
     static String next() { return in.next(); }
-    static int readInt() { return Integer.parseInt(in.next()); }
-    static long readLong() { return Long.parseLong(in.next()); }
+    static int nextInt() { return Integer.parseInt(in.next()); }
+    static long nextLong() { return Long.parseLong(in.next()); }
     static class InputReader {
         public BufferedReader reader;
         public StringTokenizer tokenizer;

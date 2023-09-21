@@ -1,53 +1,45 @@
 package template.string;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author Create by CROW
  * @Date 2023/3/3
  */
 class KMP {
+    public static int[] table(String p){
+        int[] match = new int[p.length()];
+        int maxLen = 0;
 
-    static int[] next(String p) {
-        int i = 1, j = 0;
-        int m = p.length();
-        int[] next = new int[m];
-        Arrays.fill(next, -1);
-        while (i < m && j < m) {
-            if (p.charAt(i) == p.charAt(j)) {
-                next[i] = j;
-                i++;
-                j++;
-            } else {
-                if (j == 0) {
-                    i++;
-                } else {
-                    j = next[j - 1] + 1;
-                }
+        for(int i = 1; i < p.length(); i++){
+            while(maxLen > 0 && p.charAt(maxLen) != p.charAt(i)){
+                maxLen = match[maxLen - 1];
             }
+            if(p.charAt(maxLen) == p.charAt(i)){
+                maxLen++;
+            }
+            match[i] = maxLen;
         }
-        return next;
+        return match;
     }
 
-    static int match(String s, String p) {
-        int[] next = next(p);
-        int n = s.length(), m = p.length();
-        int i = 0, j = 0;
-        while (i < n) {
-            if (s.charAt(i) == p.charAt(j)) {
-                i++;
-                j++;
-                if (j == m) {
-                    return i - m;
-                }
-            } else {
-                if (j == 0) {
-                    i++;
-                } else {
-                    j = next[j - 1] + 1;
-                }
+    public static List<Integer> findMatch(String t, String p){
+        int[] m = table(p);
+        List<Integer> res = new ArrayList<>();
+        int count = 0;
+        for(int i = 0; i < t.length(); i++){
+            while(count > 0 && p.charAt(count) != t.charAt(i)){
+                count = m[count - 1];
+            }
+            if(p.charAt(count) == t.charAt(i)){
+                count++;
+            }
+            if(count == p.length()){
+                res.add(i - p.length() + 1);
+                count = m[count - 1];
             }
         }
-        return -1;
+        return res;
     }
 }

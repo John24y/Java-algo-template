@@ -37,25 +37,25 @@ class FastInput {
         }
     }
 
-    public int[] readInts(int n) {
+    public int[] nextInts(int n) {
         int[] ans = new int[n];
-        for (int i = 0; i < n; i++) ans[i] = readInt();
+        for (int i = 0; i < n; i++) ans[i] = nextInt();
         return ans;
     }
 
-    public long[] readLongs(int n) {
+    public long[] nextLongs(int n) {
         long[] ans = new long[n];
-        for (int i = 0; i < n; i++) ans[i] = readLong();
+        for (int i = 0; i < n; i++) ans[i] = nextLong();
         return ans;
     }
 
-    public int readInt() {
-        long l = readLong();
+    public int nextInt() {
+        long l = nextLong();
         if (l > Integer.MAX_VALUE || l < Integer.MIN_VALUE) throw new RuntimeException("int overflow!");
         return (int) l;
     }
 
-    public long readLong() {
+    public long nextLong() {
         boolean rev = false;
         skipBlank();
         if (next == '+' || next == '-') {
@@ -92,7 +92,7 @@ public class Main {
     }
 
     void solve() {
-        int a=readInt(),b=readInt();
+        int a=nextInt(),b=nextInt();
         fac(a);
         fac(b);
         out.println(set.size());
@@ -108,8 +108,8 @@ public class Main {
     static FastInput in = new FastInput(System.in);
     static PrintWriter out = new PrintWriter(System.out, false);
     static String readString() { return in.readString(); }
-    static int readInt() { return in.readInt(); }
-    static long readLong() { return in.readLong(); }
-    static void solveT() { int t=readInt(); for (int i = 0; i < t; i++) new Main().solve(); }
+    static int nextInt() { return in.nextInt(); }
+    static long nextLong() { return in.nextLong(); }
+    static void solveT() { int t=nextInt(); for (int i = 0; i < t; i++) new Main().solve(); }
 }
 
