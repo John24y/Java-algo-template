@@ -1,136 +1,92 @@
 package main.at;
 import java.util.*;
 import java.io.*;
-class BipartiteMatching {
-    List<List<Integer>> g;
-    int[] pa, pb, was;
-    int n, m, res, iter;
+class UnionFind {
+    int[] fa;
+    int[] sz;//包含节点数量
+    int[] edgeCnt;//包含边数
 
-    public BipartiteMatching(int _n, int _m) {
-        n = _n;
-        m = _m;
-        pa = new int[n];
-        pb = new int[m];
-        was = new int[n];
-        Arrays.fill(pa, -1);
-        Arrays.fill(pb, -1);
-        g = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            g.add(new ArrayList<>());
+    public UnionFind(int n) {
+        fa=new int[n+1];
+        sz=new int[n+1];
+        edgeCnt=new int[n+1];
+        for (int i = 0; i <= n; i++) {
+            fa[i]=i;
+            sz[i]=1;
         }
-        res = 0;
-        iter = 0;
     }
 
-    public void add(int from, int to) {
-        g.get(from).add(to);
+    int find(int x) {
+        if (fa[x]!=x){
+            fa[x]=find(fa[x]);
+        }
+        return fa[x];
     }
 
-    public boolean dfs(int v) {
-        was[v] = iter;
-        for (int u : g.get(v)) {
-            if (pb[u] == -1) {
-                pa[v] = u;
-                pb[u] = v;
-                return true;
-            }
+    void union(int i, int j) {
+        int f1=find(fa[i]);
+        int f2=find(fa[j]);
+        if (f1>f2){
+            int t=f2;
+            f2=f1;
+            f1=t;
         }
-        for (int u : g.get(v)) {
-            if (was[pb[u]] != iter && dfs(pb[u])) {
-                pa[v] = u;
-                pb[u] = v;
-                return true;
-            }
-        }
-        return false;
+        edgeCnt[f1]++;
+        if (f1==f2)return;
+        fa[f2]=f1;
+        sz[f1]+=sz[f2];
+        edgeCnt[f1]+=edgeCnt[f2];
     }
 
-    public int solve() {
-        while (true) {
-            iter++;
-            int add = 0;
-            for (int i = 0; i < n; i++) {
-                was=new int[n];
-                Arrays.fill(was, -1);
-                if (pa[i] == -1 && dfs(i)) {
-                    add++;
-                }
-            }
-            if (iter>1 && add>0) {
-                throw new RuntimeException();
-            }
-            if (add == 0) {
-                break;
-            }
-            res += add;
-        }
-        return res;
-    }
 }
 
-
-
 public class Main {
-        public void solve() throws Exception {
-        int n=nextInt(),m=nextInt();
-        List<List<List<Integer>>> ar=new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            ar.add(new ArrayList<>());
-            for (int j = 0; j < 10; j++) {
-                ar.get(i).add(new ArrayList<>());
-            }
-            String s=next();
-            for (int j = 0; j < m; j++) {
-                ar.get(i).get(s.charAt(j)-'0').add(j);
-            }
+    List<List<int[]>> g;
+    public void solve() throws Exception {
+        int n = nextInt(), m = nextInt();
+        g = new ArrayList<>();
+        for (int i = 0; i < n + 1; i++) {
+            g.add(new ArrayList<>());
         }
-        int lo=0,hi=n*m;
-        while (lo<=hi){
-            int mid=lo+hi>>1;
-            boolean succ=false;
-            outer:
-            for (int d = 0; d <= 9; d++) {
-                List<List<Integer>> graph = new ArrayList<>(n);
-                int bc=0;
-                Map<Integer,Integer> bs=new HashMap<>();
-                for (int i = 0; i < n; i++) {
-                    graph.add(new ArrayList<>());
-                    List<Integer> li = ar.get(i).get(d);
-                    int sz=li.size();
-                    if (li.isEmpty()) {
-                        continue outer;
-                    }
-                    for (int j = 0; j < n; j++) {
-                        int time=li.get(j%sz)+(j/sz)*m;
-                        if (time<=mid){
-                            if (!bs.containsKey(time)) {
-                                bs.put(time,bc++);
-                            }
-                            graph.get(i).add(bs.get(time));
-                        }
-                    }
-                }
+        List<int[]> edges = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            int a=nextInt()-1,b=nextInt()-1,w=nextInt();
+            g.get(a).add(new int[]{b,w});
+            g.get(b).add(new int[]{a,w});
+            edges.add(new int[]{a,b,w});
+        }
 
-                BipartiteMatching matching = new BipartiteMatching(n, bs.size());
-                for (int i = 0; i < n; i++) {
-                    for (int j : graph.get(i)) {
-                        matching.add(i, j);
-                    }
-                }
-                if (matching.solve()==n) {
-                    succ=true;
-                    break;
+        int ans = (int) 2e9;
+        for (List<int[]> ints : g) {
+            int m1=Integer.MAX_VALUE,m2=Integer.MAX_VALUE;
+            for (int[] ar : ints) {
+                if (ar[1]<m1) {
+                    m2=m1;
+                    m1=ar[1];
+                } else if (ar[1]<m2) {
+                    m2=ar[1];
                 }
             }
-            if (succ) {
-                hi=mid-1;
-            } else {
-                lo=mid+1;
+            if (ints.size()>=2) {
+                ans=Math.min(ans, m1+m2);
             }
         }
-        out.println(lo>n*m?-1:lo);
+
+        Collections.sort(edges, Comparator.comparingInt(x->x[2]));
+        UnionFind find = new UnionFind(n*2);
+        for (int[] edge : edges) {
+            find.union(edge[0],edge[1]+n);
+            find.union(edge[0]+n,edge[1]);
+            if (find.find(edge[0])==find.find(edge[1])) {
+                ans=Math.min(ans, edge[2]);
+                break;
+            }
+            if (edge[2]>ans) {
+                break;
+            }
+        }
+        out.println(ans);
     }
-
 
     public static void main(String[] args) throws Exception {
         new Main().solve();

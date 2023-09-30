@@ -6,12 +6,12 @@ import java.util.*;
  * 存在合并限制的并查集，如果两颗子树包含相同的banKey，则不能合并。
  * 启发式合并的复杂度。
  */
-class RestrictMergeUnionFind {
+class RestrictMergeDSU {
     int[] fa;
     int[] sz;//包含节点数量
     List<Set<Integer>> banKey = new ArrayList<>();//含有相同banKey的子树不能合并
 
-    public RestrictMergeUnionFind(int n, List<Set<Integer>> banKeyList) {
+    public RestrictMergeDSU(int n, List<Set<Integer>> banKeyList) {
         fa = new int[n + 1];
         sz = new int[n + 1];
         for (int i = 0; i <= n; i++) {

@@ -5,6 +5,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * 快速求任意两点LCA（批量查询LCA）的几种算法：
+ * 1. 启发式合并 O(nlogQ)
+ * 2. 树上倍增 O(nlogn)
+ * 3. Tarjan+并查集
+ * 4. 树链剖分 O(nlogn) {@link TreePathDecomposition}
+ */
 class TreeLCA {
 
     /**
