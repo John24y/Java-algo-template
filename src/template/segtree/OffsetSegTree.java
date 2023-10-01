@@ -5,7 +5,7 @@ package template.segtree;
  */
 class OffsetSegTree {
 
-    class Node {
+    static class Node {
         Node left;
         Node right;
         boolean hasVal;

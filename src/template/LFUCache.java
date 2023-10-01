@@ -10,7 +10,7 @@ class LFUCache {
 
     static final int MAX_CALL=100000;
 
-    class Node {
+    static class Node {
         int key;
         int value;
         boolean removed;

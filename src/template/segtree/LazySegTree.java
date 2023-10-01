@@ -1,106 +1,95 @@
 package template.segtree;
 
 /**
- * 每个下标只能储存0或1。
- * 支持区间赋值为0或1、区间翻转01、区间求和
- * 可以求任意区间连续1的最大长度
+ * https://leetcode.com/problems/number-of-flowers-in-full-bloom/submissions/
  *
  * @Author Create by CROW
- * @Date 2023/3/12
+ * @Date 2023/2/19
  */
-class BitSegTree {
+class LazySegTree {
 
     static class Node {
         Node left;
         Node right;
+        long lazyAdd;
         long sum;
         int ls, rs;//debug用
-        OP lazy;
-        int l0,r0,mx0;//左端连续0，右端连续0，区间连续0
-        int l1,r1,mx1;//左端连续1，右端连续1，区间连续1
-    }
-    enum OP {
-        SET,
-        UNSET,
-        INV
     }
 
     int maxN;
     Node root;
 
-    public BitSegTree(int maxN) {
+    public LazySegTree(int maxN) {
         this.maxN = maxN;
         this.root = create(0, maxN);
     }
 
     Node create(int ls, int rs) {
-        Node n=new Node();
-        n.ls=ls;
-        n.rs=rs;
-        n.l0=n.r0=n.mx0=rs-ls+1;
-        n.l1=n.r1=n.mx1=0;
-        return n;
+        Node node = new Node();
+        node.ls = ls;
+        node.rs = rs;
+        return node;
     }
 
+    /**
+     * 更新范围覆盖了整个node，要做两件事：
+     * 1 更新懒标记
+     * 2 维护统计信息（覆盖node时必须在更新时维护，而不是等到查询时用reduce维护，否则复杂度是O(n)了）
+     */
+    void apply(Node node, int ls, int rs, long val) {
+        node.lazyAdd += val;
+        node.sum += (rs-ls+1)*val;
+    }
+
+    /**
+     * 两个子区间统计信息进行合并，子区间可以是查询时动态构造的，而不一定是某个node的范围
+     */
     void reduce(Node node, Node left, Node right, int ls, int rs) {
-        int mid = ls + rs >> 1;
         node.sum = left.sum + right.sum;
-        node.mx0 =Math.max(left.r0+right.l0, Math.max(left.mx0, right.mx0));
-        node.l0=(left.l0==mid-ls+1)?left.l0+right.l0:left.l0;
-        node.r0=(right.r0==rs-mid)?right.r0+left.r0:right.r0;
-
-        node.mx1 =Math.max(left.r1+right.l1, Math.max(left.mx1, right.mx1));
-        node.l1=(left.l1==mid-ls+1)?left.l1+right.l1:left.l1;
-        node.r1=(right.r1==rs-mid)?right.r1+left.r1:right.r1;
     }
 
-    void apply(Node node, int ls, int rs, OP op) {
-        if (op == OP.INV) {
-            if (node.lazy == OP.SET) {
-                op = OP.UNSET;
-            } else if (node.lazy == OP.UNSET) {
-                op = OP.SET;
-            }
+    /**
+     * O(n)设置初始值，但未必时间更短，因为可能不需要每个节点都创建出来
+     */
+    void build(long[] vals) {
+        build(root, vals, 0, maxN);
+    }
+
+    private void build(Node node, long[] vals, int ls, int rs) {
+        if (ls==rs) {
+            apply(node, ls, rs, vals[ls]);
+            return;
         }
-        node.lazy = (node.lazy == OP.INV && op == OP.INV) ? null : op;
-        if (op == OP.SET) {
-            node.l0=node.r0=node.mx0 =0;
-            node.l1=node.r1=node.mx1 =rs-ls+1;
-            node.sum = (rs - ls + 1);
-        } else if (op == OP.UNSET) {
-            node.l0=node.r0=node.mx0 =rs-ls+1;
-            node.l1=node.r1=node.mx1 =0;
-            node.sum = 0;
-        } else if (op == OP.INV) {
-            int lt=node.l0,rt=node.r0,mt=node.mx0;
-            node.l0=node.l1;node.r0=node.r1;node.mx0 =node.mx1;
-            node.l1=lt;node.r1=rt;node.mx1 =mt;
-            node.sum = (rs - ls + 1) - node.sum;
-        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        build(node.left,vals, ls, mid);
+        build(node.right,vals,mid + 1, rs);
+        reduce(node, node.left, node.right, ls, rs);
     }
 
-    public void add(int l, int r, OP op) {
-        add(root, l, r, 0, maxN, op);
+    public void add(int l, int r, long val) {
+        add(root, l, r, val, 0, maxN);
     }
 
-    private void add(Node node, int l, int r, int ls, int rs, OP op) {
+    /**
+     * 当前Node的范围: [ls,rs]
+     */
+    private void add(Node node, int l, int r, long val, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            apply(node, ls, rs, op);
+            apply(node, ls, rs, val);
             return;
         }
-
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
         if (l <= mid) {
-            add(node.left, l, r, ls, mid, op);
+            add(node.left, l, r, val, ls, mid);
         }
         if (r >= mid + 1) {
-            add(node.right, l, r, mid + 1, rs, op);
+            add(node.right, l, r, val, mid + 1, rs);
         }
-
         reduce(node, node.left, node.right, ls, rs);
     }
 
@@ -112,10 +101,10 @@ class BitSegTree {
         if (node.right == null) {
             node.right = create(mid+1, rs);
         }
-        if (node.lazy!=null) {
-            apply(node.left, ls, mid, node.lazy);
-            apply(node.right, mid + 1, rs, node.lazy);
-            node.lazy = null;
+        if (node.lazyAdd!=0) {
+            apply(node.left, ls, mid, node.lazyAdd);
+            apply(node.right, mid + 1, rs, node.lazyAdd);
+            node.lazyAdd = 0;
         }
     }
 
@@ -173,4 +162,6 @@ class BitSegTree {
         reduce(res, leftRes, rightRes, ls, rs);
         return res;
     }
+
+
 }

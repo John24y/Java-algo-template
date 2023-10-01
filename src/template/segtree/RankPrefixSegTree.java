@@ -8,7 +8,7 @@ package template.segtree;
  */
 class RankPrefixSegTree {
 
-    class Node {
+    static class Node {
         Node left;
         Node right;
         long sum;

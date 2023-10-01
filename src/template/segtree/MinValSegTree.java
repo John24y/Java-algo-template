@@ -3,7 +3,7 @@ package template.segtree;
 
 public class MinValSegTree {
 
-    class Node {
+    static class Node {
         Node left;
         Node right;
         long lazyAdd;

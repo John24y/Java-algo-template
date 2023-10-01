@@ -2,7 +2,7 @@ package template.segtree;
 
 class MaxValSegTree {
 
-    class Node {
+    static class Node {
         Node left;
         Node right;
         long lazyAdd;

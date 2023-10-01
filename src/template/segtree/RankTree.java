@@ -6,7 +6,7 @@ package template.segtree;
  * @Author Create by CROW
  * @Date 2023/2/19
  */
-class RankTree extends SegTreeTemplate {
+class RankTree extends LazySegTree {
 
     public RankTree(int maxN) {
         super(maxN);

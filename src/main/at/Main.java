@@ -1,91 +1,191 @@
 package main.at;
+
 import java.util.*;
 import java.io.*;
-class UnionFind {
-    int[] fa;
-    int[] sz;//包含节点数量
-    int[] edgeCnt;//包含边数
+class BitSegTree {
 
-    public UnionFind(int n) {
-        fa=new int[n+1];
-        sz=new int[n+1];
-        edgeCnt=new int[n+1];
-        for (int i = 0; i <= n; i++) {
-            fa[i]=i;
-            sz[i]=1;
+    static class Node {
+        Node left;
+        Node right;
+        long sum;
+        int ls, rs;//debug用
+        OP lazy;
+        int l0,r0,mx0,l1,r1,mx1;
+    }
+    enum OP {
+        SET,
+        UNSET,
+        INV
+    }
+
+    int maxN;
+    Node root;
+
+    public BitSegTree(int maxN) {
+        this.maxN = maxN;
+        this.root = create(0, maxN);
+    }
+
+    Node create(int ls, int rs) {
+        Node n=new Node();
+        n.ls=ls;
+        n.rs=rs;
+        n.l0=n.r0=n.mx0=rs-ls+1;
+        n.l1=n.r1=n.mx1=0;
+        return n;
+    }
+
+    void reduce(Node node, Node left, Node right, int ls, int rs) {
+        int mid = ls + rs >> 1;
+        node.sum = left.sum + right.sum;
+        node.mx0 =Math.max(left.r0+right.l0, Math.max(left.mx0, right.mx0));
+        node.l0=(left.l0==mid-ls+1)?left.l0+right.l0:left.l0;
+        node.r0=(right.r0==rs-mid)?right.r0+left.r0:right.r0;
+
+        node.mx1 =Math.max(left.r1+right.l1, Math.max(left.mx1, right.mx1));
+        node.l1=(left.l1==mid-ls+1)?left.l1+right.l1:left.l1;
+        node.r1=(right.r1==rs-mid)?right.r1+left.r1:right.r1;
+    }
+
+    void apply(Node node, int ls, int rs, OP op) {
+        if (op == OP.INV) {
+            if (node.lazy == OP.SET) {
+                op = OP.UNSET;
+            } else if (node.lazy == OP.UNSET) {
+                op = OP.SET;
+            }
+        }
+        node.lazy = (node.lazy == OP.INV && op == OP.INV) ? null : op;
+        if (op == OP.SET) {
+            node.l0=node.r0=node.mx0 =0;
+            node.l1=node.r1=node.mx1 =rs-ls+1;
+            node.sum = (rs - ls + 1);
+        } else if (op == OP.UNSET) {
+            node.l0=node.r0=node.mx0 =rs-ls+1;
+            node.l1=node.r1=node.mx1 =0;
+            node.sum = 0;
+        } else if (op == OP.INV) {
+            int lt=node.l0,rt=node.r0,mt=node.mx0;
+            node.l0=node.l1;node.r0=node.r1;node.mx0 =node.mx1;
+            node.l1=lt;node.r1=rt;node.mx1 =mt;
+            node.sum = (rs - ls + 1) - node.sum;
         }
     }
 
-    int find(int x) {
-        if (fa[x]!=x){
-            fa[x]=find(fa[x]);
-        }
-        return fa[x];
+    public void add(int l, int r, OP op) {
+        add(root, l, r, 0, maxN, op);
     }
 
-    void union(int i, int j) {
-        int f1=find(fa[i]);
-        int f2=find(fa[j]);
-        if (f1>f2){
-            int t=f2;
-            f2=f1;
-            f1=t;
+    private void add(Node node, int l, int r, int ls, int rs, OP op) {
+        if (l < 0 || r > maxN) {
+            throw new IllegalArgumentException();
         }
-        edgeCnt[f1]++;
-        if (f1==f2)return;
-        fa[f2]=f1;
-        sz[f1]+=sz[f2];
-        edgeCnt[f1]+=edgeCnt[f2];
+        if (l <= ls && rs <= r) {
+            apply(node, ls, rs, op);
+            return;
+        }
+
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        if (l <= mid) {
+            add(node.left, l, r, ls, mid, op);
+        }
+        if (r >= mid + 1) {
+            add(node.right, l, r, mid + 1, rs, op);
+        }
+
+        reduce(node, node.left, node.right, ls, rs);
     }
 
+    void pushDown(Node node, int ls, int rs) {
+        int mid = ls + rs >> 1;
+        if (node.left == null) {
+            node.left = create(ls, mid);
+        }
+        if (node.right == null) {
+            node.right = create(mid+1, rs);
+        }
+        if (node.lazy!=null) {
+            apply(node.left, ls, mid, node.lazy);
+            apply(node.right, mid + 1, rs, node.lazy);
+            node.lazy = null;
+        }
+    }
+
+    private static final Node EMPTY = new Node();
+    private final Node sumAns=new Node();
+
+    public long sum(int l, int r) {
+        sumAns.sum=0;
+        sum(root, l, r, 0, maxN);
+        return sumAns.sum;
+    }
+
+    private void sum(Node node, int l, int r, int ls, int rs) {
+        if (l < 0 || r > maxN) {
+            throw new IllegalArgumentException();
+        }
+        if (l <= ls && rs <= r) {
+            reduce(sumAns, node, EMPTY, ls, rs);
+            return;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        if (l <= mid) {
+            sum(node.left, l, r, ls, mid);
+        }
+        if (r >= mid + 1) {
+            sum(node.right, l, r, mid + 1, rs);
+        }
+    }
+
+    /**
+     * sum方法为了减少创建对象，所有[l,r]范围内覆盖节点合计(reduce)到全局对象。
+     * 但有些情况下必须每一层左右区间合并，比如求区间内连续1的数量，可以用此方法。
+     */
+    public Node sumInLevel(int l, int r) {
+        return sumInLevel(root, l, r, 0, maxN);
+    }
+
+    private Node sumInLevel(Node node, int l, int r, int ls, int rs) {
+        if (l < 0 || r > maxN) {
+            throw new IllegalArgumentException();
+        }
+        if (l <= ls && rs <= r) {
+            return node;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        Node res = new Node(), leftRes = EMPTY, rightRes = EMPTY;
+        if (l <= mid) {
+            leftRes = sumInLevel(node.left, l, r, ls, mid);
+        }
+        if (r >= mid + 1) {
+            rightRes = sumInLevel(node.right, l, r, mid + 1, rs);
+        }
+        reduce(res, leftRes, rightRes, ls, rs);
+        return res;
+    }
 }
 
 public class Main {
-    List<List<int[]>> g;
     public void solve() throws Exception {
-        int n = nextInt(), m = nextInt();
-        g = new ArrayList<>();
-        for (int i = 0; i < n + 1; i++) {
-            g.add(new ArrayList<>());
-        }
-        List<int[]> edges = new ArrayList<>();
-        for (int i = 0; i < m; i++) {
-            int a=nextInt()-1,b=nextInt()-1,w=nextInt();
-            g.get(a).add(new int[]{b,w});
-            g.get(b).add(new int[]{a,w});
-            edges.add(new int[]{a,b,w});
-        }
-
-        int ans = (int) 2e9;
-        for (List<int[]> ints : g) {
-            int m1=Integer.MAX_VALUE,m2=Integer.MAX_VALUE;
-            for (int[] ar : ints) {
-                if (ar[1]<m1) {
-                    m2=m1;
-                    m1=ar[1];
-                } else if (ar[1]<m2) {
-                    m2=ar[1];
-                }
-            }
-            if (ints.size()>=2) {
-                ans=Math.min(ans, m1+m2);
+        int n=nextInt(),q=nextInt();
+        String s=next();
+        BitSegTree tree=new BitSegTree(n);
+        for (int i = 0; i < n; i++) {
+            if (s.charAt(i)=='1'){
+                tree.add(i,i, BitSegTree.OP.SET);
             }
         }
-
-        Collections.sort(edges, Comparator.comparingInt(x->x[2]));
-        UnionFind find = new UnionFind(n*2);
-        for (int[] edge : edges) {
-            find.union(edge[0],edge[1]+n);
-            find.union(edge[0]+n,edge[1]);
-            if (find.find(edge[0])==find.find(edge[1])) {
-                ans=Math.min(ans, edge[2]);
-                break;
-            }
-            if (edge[2]>ans) {
-                break;
+        for (int i = 0; i < q; i++) {
+            int c=nextInt(),l=nextInt()-1,r=nextInt()-1;
+            if (c==1){
+                tree.add(l,r, BitSegTree.OP.INV);
+            } else {
+                out.println(tree.sumInLevel(l,r).mx1);
             }
         }
-        out.println(ans);
     }
 
     public static void main(String[] args) throws Exception {
