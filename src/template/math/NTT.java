@@ -7,7 +7,7 @@ class NTT {
      * 多项式A*B, a[i]表示多项式A的i次项系数
      * @return C=A*B,c[i]表示i次项的系数
      */
-    static int[] polyMul(int[] a, int[] b) {
+    static int[] polyMul(int[] a, int[] b, int resPaddingLen) {
         int N = a.length - 1, M = b.length - 1;
         int t = N + M;
         N = Math.max(N, M);
@@ -32,7 +32,7 @@ class NTT {
         for(int i = 0; i < limit; i++) A[0][i] = (int) (((long)A[0][i] * (long)A[1][i]) % P);
         NTT(A[0], limit, -1, rev);
 
-        int[] ans = new int[t + 1];
+        int[] ans = new int[t + 1 + resPaddingLen];
         long inv = fastpow(limit, P - 2);
         for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[0][i] * inv) % P);
         return ans;
@@ -42,7 +42,7 @@ class NTT {
      * 多项式A*A, a[i]表示多项式A的i次项系数
      * @return C=A*A,c[i]表示i次项的系数
      */
-    static int[] polySquare(int[] a) {
+    static int[] polySquare(int[] a, int resPaddingLen) {
         int N = a.length - 1;
         int t = N + N;
         int limit = 1, L = 0;
@@ -63,7 +63,7 @@ class NTT {
         for(int i = 0; i < limit; i++) A[i] = (int) (((long)A[i] * (long)A[i]) % P);
         NTT(A, limit, -1, rev);
 
-        int[] ans = new int[t + 1];
+        int[] ans = new int[t + 1 + resPaddingLen];
         long inv = fastpow(limit, P - 2);
         for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[i] * inv) % P);
         return ans;

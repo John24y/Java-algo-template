@@ -5,6 +5,8 @@ package template.segtree;
  * 支持区间赋值为0或1、区间翻转01、区间求和
  * 可以求任意区间连续1的最大长度
  *
+ * https://atcoder.jp/contests/abc322/tasks/abc322_f
+ *
  * @Author Create by CROW
  * @Date 2023/3/12
  */

@@ -202,4 +202,7 @@ public class MathTemplate {
         }
     }
 
+    public static void main(String[] args) {
+        System.out.println(modinv(24,998244353));
+    }
 }
