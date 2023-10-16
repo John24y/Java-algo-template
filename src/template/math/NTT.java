@@ -1,7 +1,11 @@
 package template.math;
 
+/**
+ *  - P=r*2^k+1，998244353= 多项式长度N不能超过2^k
+ *  - 结果系数为N*X^2，不能超过P。但答案刚好是对P取模的话可以用。
+ */
 class NTT {
-    static final int P = 998244353, G = 3, Gi = 332748118;
+    static final int P = 998244353, G = 3, Gi = (int) fastpow(G, P-2);
 
     /**
      * 多项式A*B, a[i]表示多项式A的i次项系数

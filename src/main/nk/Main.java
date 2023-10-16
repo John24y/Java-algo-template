@@ -3,259 +3,171 @@ package main.nk;
 import java.io.*;
 import java.util.*;
 
-class SumSegTree {
+import java.io.*;
 
-    static class Node {
-        Node left;
-        Node right;
-        long sum;
-        long lazy;
-        int ls, rs;//debug用
-    }
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
-    int maxN;
-    Node root;
-    int mod;
+class NTT {
+    private static final long P = 998244353, G = 3, Gi = fastpow(G, P-2);
 
-    public SumSegTree(int maxN, int mod) {
-        this.maxN = maxN;
-        this.root = new Node();
-        root.ls = 0;
-        root.rs = maxN;
-        this.mod = mod;
-    }
+    /**
+     * 多项式A*B, a[i]表示多项式A的i次项系数
+     * @return C=A*B,c[i]表示i次项的系数
+     */
+    static int[] polyMul(int[] a, int[] b, int[] nullableRes) {
+        int rA=rankOf(a);
+        int rB=rankOf(b);
+        int N = a.length - 1, M = b.length - 1;
+        int t = N + M;
+        N = Math.max(N, M);
+        int limit = 1, L = 0;
+        // 为什么lim要大于 n << 1，因为答案是n+m次项的，虽然a最高是n次项，但对a FFT 之后，要代入至少n+m个点
+        while (limit <= (N << 1)) {
+            limit <<= 1;
+            ++L;
+        }
 
-    long trim(long v) {
-        //可以加上取余
-        return v%mod;
-    }
+        int[][] A = new int[2][limit + 1];
+        int[] rev = new int[limit + 1];
+        System.arraycopy(a, 0, A[0], 0, a.length);
+        System.arraycopy(b, 0, A[1], 0, b.length);
 
-    public void add(int l, int r, long val) {
-        add(root, l, r, val, 0, maxN);
+        for(int i = 0; i < limit; i++) {
+            rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (L - 1));
+        }
+
+        NTT(A[0], limit, 1, rev);
+        NTT(A[1], limit, 1, rev);
+        for(int i = 0; i < limit; i++) A[0][i] = (int) (((long)A[0][i] * (long)A[1][i]) % P);
+        NTT(A[0], limit, -1, rev);
+
+        int[] ans = nullableRes == null ? new int[t + 1] : nullableRes;
+        //assert ans.length > nullableRes
+        long inv = fastpow(limit, P - 2);
+        for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[0][i] * inv) % P);
+        return ans;
     }
 
     /**
-     * 当前Node的范围: [ls,rs]
+     * 多项式A*A, a[i]表示多项式A的i次项系数
+     * @return C=A*A,c[i]表示i次项的系数
      */
-    private void add(Node node, int l, int r, long val, int ls, int rs) {
-        if (r<l){
-            return;
-        }
-        if (r<0){
-            throw new IllegalArgumentException("index:"+r);
-        }
-        if (l <= ls && rs <= r) {
-            //[l,r]覆盖了当前子树
-            node.sum = trim(node.sum+(rs - ls + 1) * val);
-            node.lazy = trim(node.lazy + val);
-            return;
+    static int[] polySquare(int[] a) {
+        int N = a.length - 1;
+        int t = N + N;
+        int limit = 1, L = 0;
+        while (limit <= (N << 1)) {
+            limit <<= 1;
+            ++L;
         }
 
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        //左子树[ls,mid]
-        //右子树[mid+1,rs]
-        if (l <= mid) {
-            add(node.left, l, r, val, ls, mid);
+        int[] A = new int[limit + 1];
+        int[] rev = new int[limit + 1];
+        System.arraycopy(a, 0, A, 0, a.length);
+
+        for(int i = 0; i < limit; i++) {
+            rev[i] = (rev[i >> 1] >> 1) | ((i & 1) << (L - 1));
         }
-        if (r >= mid + 1) {
-            add(node.right, l, r, val, mid + 1, rs);
-        }
-        int cover=Math.min(r,rs)-Math.max(l,ls)+1;
-        node.sum = trim(node.sum + val * cover);
+
+        NTT(A, limit, 1, rev);
+        for(int i = 0; i < limit; i++) A[i] = (int) (((long)A[i] * (long)A[i]) % P);
+        NTT(A, limit, -1, rev);
+
+        int[] ans = new int[t + 1];
+        long inv = fastpow(limit, P - 2);
+        for(int i = 0; i <= t; i++) ans[i] = (int) (((long) A[i] * inv) % P);
+        return ans;
     }
 
-    void pushDown(Node node, int ls, int rs) {
-        int mid = ls + rs >> 1;
-        if (node.left == null) {
-            node.left = new Node();
-            node.left.ls = ls;
-            node.left.rs = mid;
+    private static void NTT(int[] A, int limit, int type, int[] rev) {
+        for(int i = 0; i < limit; i++){
+            if(i < rev[i]) {
+                int temp = A[i];
+                A[i] = A[rev[i]];
+                A[rev[i]] = temp;
+            }
         }
-        if (node.right == null) {
-            node.right = new Node();
-            node.right.ls = mid + 1;
-            node.right.rs = rs;
+        for(int mid = 1; mid < limit; mid <<= 1) {
+            long Wn = fastpow( type == 1 ? G : Gi , (P - 1) / (mid << 1));
+            for(int j = 0; j < limit; j += (mid << 1)) {
+                long w = 1;
+                for(int k = 0; k < mid; k++, w = (w * Wn) % P) {
+                    long x = A[j + k], y = w * (long) A[j + k + mid] % P;
+                    A[j + k] = (int) ((x + y) % P);
+                    A[j + k + mid] = (int) ((x - y + P) % P);
+                }
+            }
         }
-        //pushDown的时候并没有去下发lazy值,因为对于求sum来说,可以在query的时候把整条路径上的lazy都算上
     }
 
-    public long sum(int l, int r) {
-        return sum(root, l, r, 0, maxN);
+    private static long fastpow(long a, long k) {
+        long base = 1;
+        while(k != 0) {
+            if((k & 1) != 0)
+                base = (base * a) % P;
+            a = (a * a) % P;
+            k >>= 1;
+        }
+        return base % P;
     }
 
-    private long sum(Node node, int l, int r, int ls, int rs) {
-        if (r<l) {
-            return 0;
+    private static int rankOf(int[] p) {
+        int r = p.length - 1;
+        while (r >= 0 && p[r] == 0) {
+            r--;
         }
-        if (r<0){
-            throw new IllegalArgumentException("index:"+r);
-        }
-        if (l <= ls && rs <= r) {
-            return node.sum;
-        }
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        int cover=Math.min(r,rs)-Math.max(l,ls)+1;
-        long res = trim(cover*node.lazy);
-        if (l <= mid) {
-            res += sum(node.left, l, r, ls, mid);
-        }
-        if (r >= mid + 1) {
-            res += sum(node.right, l, r, mid + 1, rs);
-        }
-        return trim(res);
+        return Math.max(0, r);
     }
+
+    private static int[] mulBF(int[] a, int[] b) {
+        int rA = rankOf(a);
+        int rB = rankOf(b);
+        if (rA > rB) {
+            {
+                int tmp = rA;
+                rA = rB;
+                rB = tmp;
+            }
+            {
+                int[] tmp = a;
+                a = b;
+                b = tmp;
+            }
+        }
+        int[] c = new int[rA + rB + 1];
+        for (int i = 0; i <= rA; i++) {
+            for (int j = 0; j <= rB; j++) {
+                c[i + j] = (int) ((c[i + j] + (long) a[i] * b[j]) % P);
+            }
+        }
+        return c;
+    }
+
 }
-class TreePathDecomposition {
-    List<List<Integer>> graph;
-    int[] deep,dfn,dfnOut,parent,top,size,hson;
-    int n,root,seq;
-    TreePathDecomposition(List<List<Integer>> graph, int root) {
-        this.graph=graph;
-        this.n=graph.size();
-        this.root=root;
-        deep=new int[n];
-        dfn=new int[n];
-        dfnOut=new int[n];
-        parent=new int[n];
-        top=new int[n];
-        size=new int[n];
-        hson=new int[n];
-        dfs1(root, -1);
-        dfs2(root, -1, root);
-    }
+public class Main {
 
-    void dfs1(int i, int p) {
-        size[i]+=1;
-        deep[i]=p==-1?1:deep[p]+1;
-        hson[i]=-1;
-        int mx=0;
-        for (Integer ch : graph.get(i)) {
-            if (ch==p) continue;
-            dfs1(ch, i);
-            size[i]+=size[ch];
-            if (size[ch]>mx) {
-                hson[i]=ch;
-                mx=size[ch];
-            }
+    public static void main(String[] args) throws IOException {
+        int n=nextInt(),m=nextInt();
+        int[] a=new int[n+1];
+        int[] b=new int[m+1];
+        for (int i = 0; i <= n; ++i) {
+            a[i]=nextInt();
         }
-    }
-
-    void dfs2(int i, int p, int ptop) {
-        dfn[i]=seq++;
-        parent[i]=p;
-        top[i]=ptop;
-        if (hson[i]!=-1) {
-            dfs2(hson[i], i, ptop);
-            for (Integer ch : graph.get(i)) {
-                if (ch == p || ch == hson[i]) continue;
-                dfs2(ch, i, ch);
-            }
+        for (int i = 0; i <= m; ++i) {
+            b[i]=nextInt();
         }
-        dfnOut[i]=seq-1;
-    }
-
-    int lca(int u, int v) {
-        while (top[u]!=top[v]) {
-            if (deep[top[u]]>deep[top[v]]) {
-                int t=u;
-                u=v;
-                v=t;
-            }
-            v=parent[top[v]];
-        }
-        return deep[u]>deep[v]?v:u;
-    }
-
-    void pathSeg(int u, int v, SegOperator op) {
-        while (top[u]!=top[v]) {
-            if (deep[top[u]]>deep[top[v]]) {
-                int t=u;
-                u=v;
-                v=t;
-            }
-            op.seg(dfn[top[v]], dfn[v]);
-            v=parent[top[v]];
-        }
-        op.seg(Math.min(dfn[u], dfn[v]), Math.max(dfn[u], dfn[v]));
-    }
-
-    interface SegOperator {
-        //[a,b]
-        void seg(int a, int b);
-    }
-}
-
-public class Main implements Runnable {
-    void solve() {
-        int n=nextInt(),m=nextInt(),r=nextInt(),p=nextInt();
-        SumSegTree tree = new SumSegTree(n, p);
-        int[] w=new int[n+1];
-        List<List<Integer>> g=new ArrayList<>();
-        for (int i = 1; i <= n; i++) {
-            w[i]=nextInt();
-            g.add(new ArrayList<>());
-        }
-        g.add(new ArrayList<>());
-        for (int i = 0; i < n - 1; i++) {
-            int a=nextInt() ,b=nextInt();
-            g.get(a).add(b);
-            g.get(b).add(a);
-        }
-        TreePathDecomposition de = new TreePathDecomposition(g, r);
-        for (int i = 1; i <= n; i++) {
-            tree.add(de.dfn[i],de.dfn[i],w[i]);
-        }
-        for (int i = 0; i < m; i++) {
-            int op=nextInt();
-            if (op==1) {
-                int x=nextInt(),y=nextInt(),z=nextInt();
-                de.pathSeg(x, y, new TreePathDecomposition.SegOperator() {
-                    @Override
-                    public void seg(int a, int b) {
-                        tree.add(a,b,z);
-                    }
-                });
-            } else if (op==2) {
-                int x=nextInt(),y=nextInt();
-                int[] v=new int[1];
-                de.pathSeg(x, y, new TreePathDecomposition.SegOperator() {
-                    @Override
-                    public void seg(int a, int b) {
-                        v[0]+=tree.sum(a,b);
-                        v[0]%=p;
-                    }
-                });
-                out.println(v[0]);
-            } else if (op==3) {
-                int x=nextInt(),z=nextInt();
-                tree.add(de.dfn[x], de.dfnOut[x], z);
-            } else if (op==4) {
-                int x=nextInt();
-                out.println(tree.sum(de.dfn[x], de.dfnOut[x]));
-            }
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        new Thread(null, new Main(), "CustomThread", 1024 * 1024 * 100).start();
-    }
-
-    @Override
-    public void run() {
-        if (true) {
-            new Main().solve();
-        } else {
-            int t = nextInt();
-            for (int i = 0; i < t; i++) {
-                new Main().solve();
-            }
+        int[] c=NTT.polyMul(a,b, null);
+        for (int i = 0; i < n+m+1; i++) {
+            out.print((i>=c.length?0:c[i])+" ");
         }
         out.flush();
     }
-
-    static PrintWriter out = new PrintWriter(System.out, false);
+    static PrintWriter out = new PrintWriter(System.out, true);
     static InputReader in = new InputReader(System.in);
     static String next() { return in.next(); }
     static int nextInt() { return Integer.parseInt(in.next()); }

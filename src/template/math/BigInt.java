@@ -7,6 +7,8 @@ import java.util.Arrays;
  * FFT可能被卡精度，需要用NTT，因为不能对数位取模（否则也不会用大数乘法了），最大的位不能超过模数，除法也不能用逆元。
  * 两个长度为n的数字相乘后，最大的位会达到 n*9*9，所以要及时进位，否则连续相乘会溢出。
  * 运算结果原地修改。
+ *
+ * https://www.luogu.com.cn/problem/P2000
  */
 class BigInt {
 

@@ -122,7 +122,7 @@ class LazySegTree {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            reduce(sumAns, node, EMPTY, ls, rs);
+            reduce(sumAns, node, sumAns, ls, rs);
             return;
         }
         pushDown(node, ls, rs);

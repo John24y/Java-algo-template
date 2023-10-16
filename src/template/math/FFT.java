@@ -85,39 +85,39 @@ class FFT {
         }
     }
 
-    private static void mul(double[][] s1, int s1_, double[][] s2, int s2_, double[][] res, int res_) {
-        double a = s1[0][s1_] * s2[0][s2_] - s1[1][s1_] * s2[1][s2_];
-        double b = s1[0][s1_] * s2[1][s2_] + s1[1][s1_] * s2[0][s2_];
-        res[0][res_] = a;
-        res[1][res_] = b;
+    private static void mul(double[][] s1, int s1i, double[][] s2, int s2i, double[][] res, int resi) {
+        double a = s1[0][s1i] * s2[0][s2i] - s1[1][s1i] * s2[1][s2i];
+        double b = s1[0][s1i] * s2[1][s2i] + s1[1][s1i] * s2[0][s2i];
+        res[0][resi] = a;
+        res[1][resi] = b;
     }
 
-    private static void add(double[][] s1, int s1_, double[][] s2, int s2_, double[][] res, int res_) {
-        double a = s1[0][s1_] + s2[0][s2_];
-        double b = s1[1][s1_] + s2[1][s2_];
-        res[0][res_] = a;
-        res[1][res_] = b;
+    private static void add(double[][] s1, int s1i, double[][] s2, int s2i, double[][] res, int resi) {
+        double a = s1[0][s1i] + s2[0][s2i];
+        double b = s1[1][s1i] + s2[1][s2i];
+        res[0][resi] = a;
+        res[1][resi] = b;
     }
 
-    private static void sub(double[][] s1, int s1_, double[][] s2, int s2_, double[][] res, int res_) {
-        double a = s1[0][s1_] - s2[0][s2_];
-        double b = s1[1][s1_] - s2[1][s2_];
-        res[0][res_] = a;
-        res[1][res_] = b;
+    private static void sub(double[][] s1, int s1i, double[][] s2, int s2i, double[][] res, int resi) {
+        double a = s1[0][s1i] - s2[0][s2i];
+        double b = s1[1][s1i] - s2[1][s2i];
+        res[0][resi] = a;
+        res[1][resi] = b;
     }
 
-    private static void swap(double[][] s1, int s1_, double[][] s2, int s2_) {
-        double a = s1[0][s1_];
-        double b = s1[1][s1_];
-        s1[0][s1_] = s2[0][s2_];
-        s1[1][s1_] = s2[1][s2_];
-        s2[0][s2_] = a;
-        s2[1][s2_] = b;
+    private static void swap(double[][] s1, int s1i, double[][] s2, int s2i) {
+        double a = s1[0][s1i];
+        double b = s1[1][s1i];
+        s1[0][s1i] = s2[0][s2i];
+        s1[1][s1i] = s2[1][s2i];
+        s2[0][s2i] = a;
+        s2[1][s2i] = b;
     }
 
-    private static void copy(double[][] s1, int s1_, double[][] s2, int s2_) {
-        s2[0][s2_] = s1[0][s1_];
-        s2[1][s2_] = s1[1][s1_];
+    private static void copy(double[][] s1, int s1i, double[][] s2, int s2i) {
+        s2[0][s2i] = s1[0][s1i];
+        s2[1][s2i] = s1[1][s1i];
     }
 
 }
