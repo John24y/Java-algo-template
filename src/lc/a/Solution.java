@@ -5,8 +5,10 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+
 class Solution {
     public static void main(String[] args) {
+        System.out.println(Long.MAX_VALUE/2-Long.MIN_VALUE/2);
 //		String line = new Scanner(System.in).nextLine();
 //		List<Integer> ar = Arrays.stream(line.split(",")).map(x -> Integer.parseInt(x)).collect(Collectors.toList());
 //        int i = new Solution().countSubMultisets(ar,
