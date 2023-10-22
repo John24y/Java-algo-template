@@ -8,19 +8,16 @@ import java.util.List;
  * 最大二分图匹配
  * 左侧点数为n，右侧点数为m，为左侧每个点找到一个匹配，左右侧任一点只能匹配一个。
  */
-class BipartiteMatching {
+class DFSMatching {
     List<List<Integer>> g;
-    int[] pa, pb;
+    int[] pl, pr;
     int n, m;
     boolean[] vis;
 
-    public BipartiteMatching(int _n, int _m) {
+    //左侧点数为n，右侧点数为m，点的下标从0开始
+    public DFSMatching(int _n, int _m) {
         n = _n;
         m = _m;
-        pa = new int[n];
-        pb = new int[m];
-        Arrays.fill(pa, -1);
-        Arrays.fill(pb, -1);
         g = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             g.add(new ArrayList<>());
@@ -31,19 +28,19 @@ class BipartiteMatching {
         g.get(from).add(to);
     }
 
-    public boolean dfs(int v) {
-        vis[v]=true;
-        for (int u : g.get(v)) {
-            if (pb[u] == -1) {
-                pa[v] = u;
-                pb[u] = v;
+    private boolean dfs(int l) {
+        vis[l]=true;
+        for (int r : g.get(l)) {
+            if (pr[r] == -1) {
+                pl[l] = r;
+                pr[r] = l;
                 return true;
             }
         }
-        for (int u : g.get(v)) {
-            if (!vis[pb[u]] && dfs(pb[u])) {
-                pa[v] = u;
-                pb[u] = v;
+        for (int r : g.get(l)) {
+            if (!vis[pr[r]] && dfs(pr[r])) {
+                pl[l] = r;
+                pr[r] = l;
                 return true;
             }
         }
@@ -51,10 +48,14 @@ class BipartiteMatching {
     }
 
     public int solve() {
+        pl = new int[n];
+        pr = new int[m];
+        Arrays.fill(pl, -1);
+        Arrays.fill(pr, -1);
         int ans=0;
         for (int i = 0; i < n; i++) {
             vis=new boolean[n];
-            if (pa[i] == -1 && dfs(i)) {
+            if (pl[i] == -1 && dfs(i)) {
                 ans++;
             }
         }

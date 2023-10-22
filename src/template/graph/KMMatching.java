@@ -1,14 +1,7 @@
-package main.nk;
+package template.graph;
 
-import java.io.*;
-import java.util.*;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.StringTokenizer;
-
 
 class KMMatching {
     private static final long INF = Long.MAX_VALUE;
@@ -133,48 +126,4 @@ class KMMatching {
         return ans;
     }
 
-}
-
-public class Main {
-
-    public static void main(String[] args) throws IOException {
-        int n=nextInt(),m=nextInt();
-        KMMatching matching = new KMMatching(n);
-        for (int i = 0; i < m; i++) {
-            long a=nextLong(),b=nextLong(),w=nextLong();
-            matching.add((int) a, (int) b,w);
-        }
-        long solve = matching.solve();
-        out.println(solve);
-        for (int i = 1; i <= n; i++) {
-            out.print((matching.rightMatch[i])+" ");
-        }
-        out.flush();
-    }
-
-    static PrintWriter out = new PrintWriter(System.out, true);
-    static InputReader in = new InputReader(System.in);
-    static String next() { return in.next(); }
-    static int nextInt() { return Integer.parseInt(in.next()); }
-    static long nextLong() { return Long.parseLong(in.next()); }
-    static class InputReader {
-        public BufferedReader reader;
-        public StringTokenizer tokenizer;
-
-        public InputReader(InputStream stream) {
-            reader = new BufferedReader(new InputStreamReader(stream), 32768);
-            tokenizer = null;
-        }
-
-        public String next() {
-            while (tokenizer == null || !tokenizer.hasMoreTokens()) {
-                try {
-                    tokenizer = new StringTokenizer(reader.readLine());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return tokenizer.nextToken();
-        }
-    }
 }
