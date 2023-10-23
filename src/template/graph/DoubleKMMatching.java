@@ -3,15 +3,15 @@ package template.graph;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 
-class KMMatching {
-    private static final long INF = Long.MAX_VALUE;
+class DoubleKMMatching {
+    private static final double INF = Double.MAX_VALUE;
 
     private int n;
-    private long[][] graph;
+    double[][] graph;
 
-    private long[] leftLabel;
-    private long[] rightLabel;
-    private long[] slack;
+    private double[] leftLabel;
+    private double[] rightLabel;
+    private double[] slack;
     int[] leftMatch;
     int[] rightMatch;
     private int[] pre;
@@ -20,13 +20,13 @@ class KMMatching {
     private ArrayDeque<Integer> q = new ArrayDeque<>();
 
     //n个点，下标[1..n]，下标0不可用
-    public KMMatching(int n) {
+    public DoubleKMMatching(int n) {
         this.n = n;
         n++;
-        graph =new long[n][n];
-        leftLabel = new long[n];
-        rightLabel = new long[n];
-        slack = new long[n];
+        graph =new double[n][n];
+        leftLabel = new double[n];
+        rightLabel = new double[n];
+        slack = new double[n];
         leftMatch = new int[n];
         rightMatch = new int[n];
         pre = new int[n];
@@ -37,7 +37,7 @@ class KMMatching {
         }
     }
 
-    public void add(int left, int right, long w) {
+    public void add(int left, int right, double w) {
         graph[left][right]=w;
         leftLabel[left] = Math.max(leftLabel[left], w);
     }
@@ -68,8 +68,8 @@ class KMMatching {
                 for (int r = 1; r <= n; r++) {
                     if (!rightVis[r]) {
                         if (graph[l][r] != -INF && leftLabel[l] + rightLabel[r] - graph[l][r] <= slack[r]) {
-                            slack[r] = leftLabel[l] + rightLabel[r] - graph[l][r];
                             pre[r] = l;
+                            slack[r] = leftLabel[l] + rightLabel[r] - graph[l][r];
                             if (slack[r] == 0) {
                                 rightVis[r] = true;
                                 if (rightMatch[r] == 0) {
@@ -83,7 +83,7 @@ class KMMatching {
                     }
                 }
             }
-            long d = INF;
+            double d = INF;
             for (int i = 1; i <= n; i++) {
                 if (!rightVis[i]) {
                     d = Math.min(d, slack[i]);
@@ -116,11 +116,11 @@ class KMMatching {
         }
     }
 
-    public long solve() {
+    public double solve() {
         for (int i = 1; i <= n; i++) {
             bfs(i);
         }
-        long ans=0;
+        double ans=0;
         for (int i = 1; i <= n; i++) {
             ans+=graph[i][leftMatch[i]];
         }

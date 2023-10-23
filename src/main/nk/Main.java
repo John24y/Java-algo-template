@@ -74,7 +74,7 @@ class KMMatching {
                 leftVis[l] = true;
                 for (int r = 1; r <= n; r++) {
                     if (!rightVis[r]) {
-                        if (graph[l][r] != -INF && leftLabel[l] + rightLabel[r] - graph[l][r] < slack[r]) {
+                        if (graph[l][r] != -INF && leftLabel[l] + rightLabel[r] - graph[l][r] <= slack[r]) {
                             slack[r] = leftLabel[l] + rightLabel[r] - graph[l][r];
                             pre[r] = l;
                             if (slack[r] == 0) {
@@ -96,6 +96,7 @@ class KMMatching {
                     d = Math.min(d, slack[i]);
                 }
             }
+            if (d==INF) throw new RuntimeException("Not resolvable");
             for (int i = 1; i <= n; i++) {
                 if (leftVis[i]) {
                     leftLabel[i] -= d;
