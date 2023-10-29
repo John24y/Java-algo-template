@@ -1,6 +1,17 @@
 package template.segtree;
 
 /**
+ * 区间修改区间查询线段树。改模板主要是两个方法 apply 和 reduce.
+ * <p>
+ * apply(Node node, int ls, int rs, long val)
+ * 更新范围覆盖了整个node，要做两件事：
+ * 1 更新懒标记 (不要依赖val是常量：即使add时val传参是常量比如1，pushDown时调用apply，val也会大于1)
+ * 2 维护统计信息（覆盖node时必须O(1)时间更新单个node，才能实现整体O(logn)的更新）.
+ * <p>
+ * reduce(Node node, Node left, Node right, int ls, int rs)
+ * 两个子区间统计信息进行合并，子区间可以是查询时动态构造的，而不一定是某个node的范围
+ *
+ * https://www.luogu.com.cn/problem/P3372
  * https://leetcode.com/problems/number-of-flowers-in-full-bloom/submissions/
  *
  * @Author Create by CROW
@@ -33,8 +44,8 @@ class LazySegTree {
 
     /**
      * 更新范围覆盖了整个node，要做两件事：
-     * 1 更新懒标记
-     * 2 维护统计信息（覆盖node时必须在更新时维护，而不是等到查询时用reduce维护，否则复杂度是O(n)了）
+     * 1 更新懒标记 (不要依赖val是常量：即使add时val传参是常量比如1，pushDown时调用apply，val也会大于1)
+     * 2 维护统计信息（覆盖node时必须O(1)时间更新单个node，才能实现整体O(logn)的更新）.
      */
     void apply(Node node, int ls, int rs, long val) {
         node.lazyAdd += val;

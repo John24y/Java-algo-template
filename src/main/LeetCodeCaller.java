@@ -1,4 +1,4 @@
-package lc;
+package main;
 
 import java.util.List;
 
