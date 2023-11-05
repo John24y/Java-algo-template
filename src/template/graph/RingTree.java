@@ -11,12 +11,15 @@ import java.util.List;
 class RingTree {
     List<List<Integer>> cycList=new ArrayList<>();//所有环的list
     int[] cycId;//每个节点所在环(cyc_list)的下标，不在环上是-1
+    int[] idxInCyc;
 
     //节点i指向edges[i]
     public RingTree(int[] edges) {
         int n = edges.length;
         cycId=new int[n];
+        idxInCyc=new int[n];
         Arrays.fill(cycId, -1);
+        Arrays.fill(idxInCyc, -1);
         boolean[] vis=new boolean[n];
         boolean[] inStack=new boolean[n];
         List<Integer> stack=new ArrayList<>();
@@ -35,8 +38,10 @@ class RingTree {
                 j=edges[j];
             }
             cyc.add(i);
-            for (Integer v : cyc) {
+            for (int k = 0; k < cyc.size(); k++) {
+                int v=cyc.get(k);
                 cycId[v]=cycList.size()-1;
+                idxInCyc[v]=k;
             }
             return;
         }
@@ -48,6 +53,7 @@ class RingTree {
         stack.remove(stack.size()-1);
         inStack[i]=false;
     }
+
 
 }
 

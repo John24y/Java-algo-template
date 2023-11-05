@@ -19,7 +19,7 @@ package template.segtree;
  */
 class LazySegTree {
 
-    static class Node {
+    public static class Node {
         Node left;
         Node right;
         long lazyAdd;
@@ -120,41 +120,37 @@ class LazySegTree {
     }
 
     private static final Node EMPTY = new Node();
-    private final Node sumAns=new Node();
+    private final Node queryNode = new Node();
 
     public long sum(int l, int r) {
-        sumAns.sum=0;
-        sum(root, l, r, 0, maxN);
-        return sumAns.sum;
+        queryNode.sum=0;
+        query(root, l, r, 0, maxN);
+        return queryNode.sum;
     }
 
-    private void sum(Node node, int l, int r, int ls, int rs) {
+    private void query(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            reduce(sumAns, node, sumAns, ls, rs);
+            reduce(queryNode, node, queryNode, ls, rs);
             return;
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
         if (l <= mid) {
-            sum(node.left, l, r, ls, mid);
+            query(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            sum(node.right, l, r, mid + 1, rs);
+            query(node.right, l, r, mid + 1, rs);
         }
     }
 
     /**
-     * sum方法为了减少创建对象，所有[l,r]范围内覆盖节点合计(reduce)到全局对象。
-     * 但有些情况下必须每一层左右区间合并，比如求区间内连续1的数量，可以用此方法。
+     * 查询时总是左右区间合并，而不是合并到全局的queryNode
+     * 查询过程需要创建logn个对象，但有时候必须这样合并，比如统计区间内连续1的数量
      */
-    public Node sumInLevel(int l, int r) {
-        return sumInLevel(root, l, r, 0, maxN);
-    }
-
-    private Node sumInLevel(Node node, int l, int r, int ls, int rs) {
+    private Node queryStrictMerge(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
@@ -165,14 +161,56 @@ class LazySegTree {
         int mid = ls + rs >> 1;
         Node res = new Node(), leftRes = EMPTY, rightRes = EMPTY;
         if (l <= mid) {
-            leftRes = sumInLevel(node.left, l, r, ls, mid);
+            leftRes = queryStrictMerge(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            rightRes = sumInLevel(node.right, l, r, mid + 1, rs);
+            rightRes = queryStrictMerge(node.right, l, r, mid + 1, rs);
         }
         reduce(res, leftRes, rightRes, ls, rs);
         return res;
     }
-
-
 }
+
+/**
+ * tree[i]表示i在数组中出现的次数，数组可动态修改的情况下求数组的第k小
+ *
+ * @Author Create by CROW
+ * @Date 2023/2/19
+ */
+class RankTree extends LazySegTree {
+
+    public RankTree(int maxN) {
+        super(maxN);
+    }
+
+    /**
+     * 假设tree[i]表示i在数组中出现的次数，求数组的第k小，如果不存在返回-1
+     */
+    public long kSmallest(long k) {
+        return queryFirstGE(k);
+    }
+
+    /**
+     * 查找使sum([0,r])>=v最小的r，如果不存在返回-1
+     */
+    public long queryFirstGE(long v) {
+        return queryFirstGE(root, 0, maxN, v);
+    }
+
+    private long queryFirstGE(Node node, int ls, int rs, long v) {
+        if (node.sum < v) {
+            return -1;
+        }
+        if (ls == rs) {
+            return ls;
+        }
+        int mid = ls + rs >> 1;
+        pushDown(node, ls, rs);
+        if (node.left.sum >= v) {
+            return queryFirstGE(node.left, ls, mid, v);
+        } else {
+            return queryFirstGE(node.right, mid + 1, rs, v - node.left.sum);
+        }
+    }
+}
+

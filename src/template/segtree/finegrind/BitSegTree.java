@@ -1,4 +1,4 @@
-package template.segtree;
+package template.segtree.finegrind;
 
 /**
  * 每个下标只能储存0或1。
