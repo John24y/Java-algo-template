@@ -41,11 +41,12 @@ class MinValSegTree {
 
     void apply(Node node, int ls, int rs, int type, long val) {
         node.lazyType = type;
-        node.lazyVal = val;
         if (type == OP_ADD) {
+            node.lazyVal += val;
             node.sum += (rs - ls + 1) * val;
             node.minVal -= val;
         } else if (type==OP_SET) {
+            node.lazyVal = val;
             node.sum = (rs - ls + 1) * val;
             node.minVal = val;
         }
@@ -128,6 +129,7 @@ class MinValSegTree {
             apply(node.left, ls, mid, node.lazyType, node.lazyVal);
             apply(node.right, mid + 1, rs, node.lazyType, node.lazyVal);
             node.lazyType = 0;
+            node.lazyVal = 0;
         }
     }
 
