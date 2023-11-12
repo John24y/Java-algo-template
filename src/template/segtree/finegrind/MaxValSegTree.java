@@ -159,7 +159,7 @@ class MaxValSegTree {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            reduce(queryNode, node, queryNode, ls, rs);
+            reduce(queryNode, node, EMPTY, ls, rs);
             return;
         }
         pushDown(node, ls, rs);

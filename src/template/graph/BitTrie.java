@@ -1,6 +1,81 @@
-package main.lc;
+package template.graph;
 
-import java.util.Arrays;
+/**
+ * 字典树表示的二进制数字
+ */
+class BitTrie {
+    public static final int MAX_BIT = 31;
+    static class Node {
+        Node[] child = new Node[2];
+        int prefix = 0;
+        int count = 0;
+    }
+
+    Node root;
+    public BitTrie() {
+        root = new Node();
+    }
+
+    public void add(int val) {
+        Node node = root;
+        int prefix = 0;
+        for (int i = MAX_BIT - 1; i >= 0; i--) {
+            int bit = val>>i&1;
+            if (node.child[bit] == null) {
+                node.child[bit] = new Node();
+            }
+            node = node.child[bit];
+            prefix |= bit<<i;
+            node.prefix = prefix;
+            node.count ++;
+        }
+    }
+
+    public void remove(int val) {
+        Node node = root;
+        for (int i = MAX_BIT - 1; i >= 0; i--) {
+            int bit = val>>i&1;
+            node = node.child[bit];
+            node.count --;
+        }
+    }
+
+    // 求 num^x 最大的x，x是在树中存在的数字
+    public int maxXor(int num) {
+        Node node = root;
+        int ans = 0;
+        for (int i = MAX_BIT - 1; i >= 0; i--) {
+            int bit = num>>i&1;
+            if (node.child[1-bit]!=null && node.child[1-bit].count>0) {
+                bit = 1-bit;
+                ans |= 1<<i;
+            } else if (node.child[bit]!=null && node.child[bit].count>0) {
+            } else {
+                return -1;
+            }
+            node = node.child[bit];
+        }
+        return ans;
+    }
+
+    public int minXor(int num) {
+        Node node = root;
+        int ans = 0;
+        for (int i = MAX_BIT - 1; i >= 0; i--) {
+            int bit = num>>i&1;
+            if (node.child[bit]!=null && node.child[bit].count>0) {
+            } else if (node.child[1-bit]!=null && node.child[1-bit].count>0) {
+                bit = 1-bit;
+                ans |= 1<<i;
+            } else {
+                return -1;
+            }
+            node = node.child[bit];
+        }
+        return ans;
+    }
+}
+
 
 class RecurBitTrie {
     public static final int MAX_BIT = 31;
@@ -20,6 +95,7 @@ class RecurBitTrie {
     }
 
     public void add(int val, int cnt) {
+        // 和查询时的开始bit务必对上
         add(root, MAX_BIT - 1, val, cnt);
     }
 
@@ -86,25 +162,5 @@ class RecurBitTrie {
             node = node.child[bit];
         }
         return ans;
-    }
-}
-
-class Solution {
-    public int maximumStrongPairXor(int[] nums) {
-        int n = nums.length;
-        Arrays.sort(nums);
-        int res = 0;
-        RecurBitTrie trie = new RecurBitTrie();
-        for (int i = 0; i < n; i++) {
-            int t = (nums[i] >> 1) + (nums[i] & 1);
-            res = Math.max(res, trie.maxXor(nums[i], t));
-            trie.add(nums[i], 1);
-        }
-        return res;
-    }
-
-    public static void main(String[] args) {
-        int i = new Solution().maximumStrongPairXor(new int[]{500, 520});
-        System.out.println(i);
     }
 }

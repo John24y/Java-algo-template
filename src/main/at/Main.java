@@ -6,180 +6,161 @@ import java.util.*;
 class MaxValSegTree {
     //对查询结果相加需要注意溢出
     static final long INIT = 0;
-    static final int OP_ADD = 1;
-    static final int OP_SET = 2;
+    static final byte OP_ADD = 1;
+    static final byte OP_SET = 2;
 
-    static class Node {
-        Node left;
-        Node right;
-        int ls, rs;//debug用
+    long[] maxVal;
+    int[] maxId;
+    byte[] lazyType;
+    long[] lazyVal;
+    long[] sum;
 
-        long maxVal;
-        int maxId;//值最大且index最小的index
-        int lazyType;
-        long lazyVal;
-        long sum;
-    }
+    int maxN, varStart, varIdx;
 
-    int maxN;
-    Node root;
-
-    public MaxValSegTree(int maxN) {
+    public MaxValSegTree(int maxN, long[] initVals) {
         this.maxN = maxN;
-        this.root = createNode(0, maxN);
-        root.ls = 0;
-        root.rs = maxN;
-    }
-
-    Node createNode(int ls, int rs) {
-        Node r = new Node();
-        r.maxId = ls;
-        r.maxVal = INIT;
-        return r;
-    }
-
-    void apply(Node node, int ls, int rs, int type, long val) {
-        node.lazyType = type;
-        if (type == OP_ADD) {
-            node.lazyVal += val;
-            node.sum += (rs - ls + 1) * val;
-            node.maxVal += val;
-        } else if (type==OP_SET) {
-            node.lazyVal = val;
-            node.sum = (rs - ls + 1) * val;
-            node.maxVal = val;
+        varIdx = varStart = Integer.highestOneBit(maxN) << 2;
+        int len = varStart + 36;
+        maxVal = new long[len];
+        maxId = new int[len];
+        lazyType = new byte[len];
+        lazyVal = new long[len];
+        sum = new long[len];
+        //build(1, initVals, 0, maxN);
+        for (int i = 0; i < maxId.length; i++) {
+            maxId[i]=i;
         }
     }
 
-    void reduce(Node node, Node left, Node right, int ls, int rs) {
-        node.sum = left.sum + right.sum;
-        if (right.maxVal > left.maxVal) {
-            node.maxId = right.maxId;
-            node.maxVal = right.maxVal;
-        } else {
-            node.maxId = left.maxId;
-            node.maxVal = left.maxVal;
-        }
-    }
-
-    void build(long[] vals) {
-        build(root, vals, 0, maxN);
-    }
-
-    private void build(Node node, long[] vals, int ls, int rs) {
-        if (ls==rs) {
-            apply(node, ls, rs, OP_SET, vals[ls]);
+    private void build(int i, long[] vals, int ls, int rs) {
+        if (ls == rs) {
+            maxId[i] = ls;
+            maxVal[i] = vals == null ? INIT : vals[ls];
             return;
         }
-        pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
-        build(node.left,vals, ls, mid);
-        build(node.right,vals,mid + 1, rs);
-        reduce(node, node.left, node.right, ls, rs);
+        build(i * 2, vals, ls, mid);
+        build(i * 2 + 1, vals, mid + 1, rs);
+        reduce(i, i * 2, i * 2 + 1, ls, rs);
+    }
+
+    void apply(int i, int ls, int rs, byte type, long val) {
+        lazyType[i] = type;
+        if (type == OP_ADD) {
+            lazyVal[i] += val;
+            sum[i] += (rs - ls + 1) * val;
+            maxVal[i] += val;
+        } else if (type == OP_SET) {
+            lazyVal[i] = val;
+            sum[i] = (rs - ls + 1) * val;
+            maxVal[i] = val;
+        }
+    }
+
+    void reduce(int i, int left, int right, int ls, int rs) {
+        sum[i] = sum[left] + sum[right];
+        if (maxVal[right] > maxVal[left]) {
+            maxId[i] = maxId[right];
+            maxVal[i] = maxVal[right];
+        } else {
+            maxId[i] = maxId[left];
+            maxVal[i] = maxVal[left];
+        }
     }
 
     public void add(int l, int r, long val) {
-        update(root, l, r, 0, maxN, OP_ADD, val);
+        update(1, l, r, 0, maxN, OP_ADD, val);
     }
 
     public void set(int l, int r, long val) {
-        update(root, l, r, 0, maxN, OP_SET, val);
+        update(1, l, r, 0, maxN, OP_SET, val);
     }
 
     /**
      * 当前Node的范围: [ls,rs]
      */
-    private void update(Node node, int l, int r, int ls, int rs, int type, long val) {
+    private void update(int i, int l, int r, int ls, int rs, byte type, long val) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            apply(node, ls, rs, type, val);
+            apply(i, ls, rs, type, val);
             return;
         }
 
-        pushDown(node, ls, rs);
+        pushDown(i, ls, rs);
         int mid = ls + rs >> 1;
         //左子树[ls,mid]
         //右子树[mid+1,rs]
         if (l <= mid) {
-            update(node.left, l, r, ls, mid, type, val);
+            update(i * 2, l, r, ls, mid, type, val);
         }
         if (r >= mid + 1) {
-            update(node.right, l, r, mid + 1, rs, type, val);
+            update(i * 2 + 1, l, r, mid + 1, rs, type, val);
         }
-        reduce(node, node.left, node.right, ls, rs);
+        reduce(i, i * 2, i * 2 + 1, ls, rs);
     }
 
     //下发lazy值
-    void pushDown(Node node, int ls, int rs) {
+    void pushDown(int i, int ls, int rs) {
         int mid = ls + rs >> 1;
-        if (node.left == null) {
-            node.left = createNode(ls, mid);
-            node.left.ls = ls;
-            node.left.rs = mid;
-        }
-        if (node.right == null) {
-            node.right = createNode(mid + 1, rs);
-            node.right.ls = mid + 1;
-            node.right.rs = rs;
-        }
-        if (node.lazyType != 0) {
-            apply(node.left, ls, mid, node.lazyType, node.lazyVal);
-            apply(node.right, mid + 1, rs, node.lazyType, node.lazyVal);
-            node.lazyType = 0;
-            node.lazyVal = 0;
+        if (lazyType[i] != 0) {
+            apply(i * 2, ls, mid, lazyType[i], lazyVal[i]);
+            apply(i * 2 + 1, mid + 1, rs, lazyType[i], lazyVal[i]);
+            lazyType[i] = 0;
+            lazyVal[i] = 0;
         }
     }
 
     public long sum(int l, int r) {
-        queryNode.sum = 0;
-        query(root, l, r, 0, maxN);
-        return queryNode.sum;
+        varIdx = varStart;
+        return sum[query(1, l, r, 0, maxN)];
     }
 
     //查询最大值
     public long queryMaxVal(int l, int r) {
-        queryNode.maxVal = INIT;
-        queryNode.maxId = -1;
-        query(root, l, r, 0, maxN);
-        return queryNode.maxVal;
+        varIdx = varStart;
+        return maxVal[query(1, l, r, 0, maxN)];
     }
 
     //查询最大值的下标，如果有多个则取下标最小的
     public int queryMaxId(int l, int r) {
-        queryNode.maxVal = INIT;
-        queryNode.maxId = -1;
-        query(root, l, r, 0, maxN);
-        return queryNode.maxId;
+        varIdx = varStart;
+        return maxId[query(1, l, r, 0, maxN)];
     }
 
-    private static final Node EMPTY = new Node();
-    private final Node queryNode = new Node();
+    private void cleanNode(int i) {
+        maxVal[i]=INIT;
+        maxId[i]=-1;
+    }
 
-    private void query(Node node, int l, int r, int ls, int rs) {
+    private int query(int i, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            reduce(queryNode, node, queryNode, ls, rs);
-            return;
+            return i;
         }
-        pushDown(node, ls, rs);
+        pushDown(i, ls, rs);
+        int res = ++varIdx;
+        cleanNode(res);
+        int leftRes=varStart, rightRes=varStart;
         int mid = ls + rs >> 1;
         if (l <= mid) {
-            query(node.left, l, r, ls, mid);
+            leftRes=query(i*2, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            query(node.right, l, r, mid + 1, rs);
+            rightRes=query(i*2+1, l, r, mid + 1, rs);
         }
+        reduce(res, leftRes, rightRes, ls, rs);
+        return res;
     }
 
 }
 public class Main {
 
     public void solve() throws Exception {
-        MaxValSegTree tree = new MaxValSegTree((int) 2e5+10);
+        MaxValSegTree tree = new MaxValSegTree((int) 2e5+10, null);
         int n=nextInt(),d=nextInt(),w=nextInt();
         List<List<Integer>> xs = new ArrayList<>();
         for (int i = 0; i < 2e5 + 10; i++) {
@@ -198,7 +179,7 @@ public class Main {
                 }
                 r++;
             }
-            ans=Math.max(ans, tree.root.maxVal);
+            ans=Math.max(ans, tree.maxVal[1]);
             for (Integer t : xs.get(l)) {
                 tree.add(Math.max(0,t-d+1),t,-1);
             }
