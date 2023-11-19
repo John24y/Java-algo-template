@@ -1,5 +1,8 @@
 package template.math;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @Author Create by CROW
  * @Date 2023/4/14
@@ -63,5 +66,34 @@ class Comb {
 
     public static void main(String[] args) {
         System.out.println(-6%5);
+    }
+}
+
+/**
+ * 从n个元素[0,n-1]选出m个，枚举方案
+ * 建议优先用 next_permutation.
+ */
+class CombSolution {
+    List<List<Integer>> dp = new ArrayList<>();
+
+    public CombSolution(int n, int m) {
+        for (int i = 0; i <= m+1; i++) {
+            dp.add(new ArrayList<>());
+        }
+        dp.get(0).add(0);
+        for (int i = 0; i < n; i++) {
+            for (int j = m; j > 0; j--) {
+                for (int s : dp.get(j-1)) {
+                    if (accept(s,i)) {
+                        dp.get(j).add(s|(1<<i));
+                    }
+                }
+            }
+        }
+    }
+
+    //state:已选择集合, i是否可以添加i
+    boolean accept(int state, int i) {
+        return true;
     }
 }

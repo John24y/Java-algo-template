@@ -12,9 +12,31 @@ import java.util.stream.Collectors;
  * @Date 2023/6/24
  */
 public class Test {
-
+    static boolean next_permutation(int[] p) {
+        for (int a = p.length - 2; a >= 0; --a) {
+            if (p[a] < p[a + 1]) {
+                for (int b = p.length - 1;; --b){
+                    if (p[b] > p[a]) {
+                        int t = p[a];
+                        p[a] = p[b];
+                        p[b] = t;
+                        for (++a, b = p.length - 1; a < b; ++a, --b) {
+                            t = p[a];
+                            p[a] = p[b];
+                            p[b] = t;
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
     public static void main(String[] args) {
-        System.out.println(-(1<<31));
+        int[] a=new int[]{1,2,2,3};
+        do {
+            System.out.println(Arrays.toString(a));
+        } while (next_permutation(a));
     }
 
 
