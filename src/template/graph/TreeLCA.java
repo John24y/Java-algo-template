@@ -28,7 +28,7 @@ class TreeLCA {
         int[] fa;
         int[] ans;
 
-        TarjanLCA(List<List<Integer>> graph, List<int[]> queries) {
+        TarjanLCA(List<List<Integer>> graph, int root, List<int[]> queries) {
             this.graph = graph;
             this.queries = queries;
             ans = new int[queries.size()];
@@ -46,7 +46,7 @@ class TreeLCA {
             for (int i = 0; i < graph.size(); i++) {
                 fa[i] = i;
             }
-            dfs(0, -1);
+            dfs(root, -1);
         }
 
         int find(int i) {
@@ -90,7 +90,7 @@ class TreeLCA {
         List<Set<Integer>> q;
         int[] ans;
 
-        MergingLCA(List<List<Integer>> graph, List<int[]> queries) {
+        MergingLCA(List<List<Integer>> graph, int root, List<int[]> queries) {
             this.graph = graph;
             this.queries = queries;
             ans = new int[queries.size()];
@@ -107,7 +107,7 @@ class TreeLCA {
                     q.get(ints[1]).add(i);
                 }
             }
-            dfs(0, -1);
+            dfs(root, -1);
         }
 
         void dfs(int i, int p) {
@@ -136,17 +136,17 @@ class TreeLCA {
      * graph   树结构, graph[i]是节点i的邻居节点
      */
     class BinaryLiftingLCA {
-        List<List<Integer>> graph;
+        List<List<int[]>> graph;
         int[][] up;//up[b][i] 节点i向上走2^b步
         int[] depth;
         int MB = 30;
 
-        BinaryLiftingLCA(List<List<Integer>> graph) {
+        BinaryLiftingLCA(List<List<int[]>> graph, int root) {
             this.graph = graph;
             int n = graph.size();
-            up = new int[MB+1][n];
+            up = new int[MB + 1][n];
             depth = new int[n];
-            dfs(0, -1);
+            dfs(root, -1);
         }
 
         void dfs(int u, int p) {
@@ -160,9 +160,9 @@ class TreeLCA {
                     up[b][u] = up[b - 1][ancestor];
                 }
             }
-            for (Integer ch : graph.get(u)) {
-                if (ch == p) continue;
-                dfs(ch, u);
+            for (int[] ch : graph.get(u)) {
+                if (ch[0] == p) continue;
+                dfs(ch[0], u);
             }
         }
 
@@ -189,6 +189,5 @@ class TreeLCA {
             return up[0][u];
         }
     }
-
 }
 

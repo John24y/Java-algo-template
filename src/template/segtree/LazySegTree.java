@@ -68,7 +68,9 @@ class LazySegTree {
 
     private void build(Node node, long[] vals, int ls, int rs) {
         if (ls==rs) {
-            apply(node, ls, rs, vals[ls]);
+            if (ls<vals.length) {
+                apply(node, ls, rs, vals[ls]);
+            }
             return;
         }
         pushDown(node, ls, rs);

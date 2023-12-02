@@ -77,7 +77,7 @@ class MinValSegTree {
 
     private void build(Node node, int[] vals, int ls, int rs) {
         if (ls==rs) {
-            apply(node, ls, rs, OP_SET, vals[ls]);
+            apply(node, ls, rs, OP_SET, ls>=vals.length ? INIT : vals[ls]);
             return;
         }
         pushDown(node, ls, rs);

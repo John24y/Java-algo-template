@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 class IntervalTree {
+    //是否合并相邻的区间
+    private static final boolean MERGE_ADJACENT = true;
+
     //<end1,[end2,h]>
     TreeMap<Long,long[]> map=new TreeMap<>();
 
@@ -20,9 +23,10 @@ class IntervalTree {
     private void modify(long l, long r, boolean add) {
         long L = l, R = r;
         Map.Entry<Long,long[]> entry = null;
-        while ((entry=map.ceilingEntry(l))!=null) {
-            //遍历左或右端点>=l的区间，然后通过迭代区间左端点判断是否有交集
-            if (entry.getValue()[0]>r) break;
+        while ((entry=map.ceilingEntry(MERGE_ADJACENT ? l-1 : l))!=null) {
+            //map上已存在区间都是互不相交的，左右端点交替出现
+            //所以只要按顺序遍历右端点>=l的区间找交集，当区间左端点>r，后续再无交集
+            if (entry.getValue()[0]>(MERGE_ADJACENT ? r+1 : r)) break;
             R = Math.max(R, entry.getValue()[1]);
             L = Math.min(L, entry.getValue()[0]);
             internalDel(entry.getValue());
@@ -64,5 +68,4 @@ class IntervalTree {
             map.remove(longs[1]);
         }
     }
-
 }

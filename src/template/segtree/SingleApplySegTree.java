@@ -12,6 +12,8 @@ class SingleApplySegTree {
         Node left;
         Node right;
         long sum;
+        boolean absent=true;
+        long ls, rs;
     }
 
     int maxN;
@@ -20,6 +22,25 @@ class SingleApplySegTree {
     public SingleApplySegTree(int maxN) {
         this.maxN = maxN;
         this.root = new Node();
+        this.root.ls = 0;
+        this.root.rs = maxN;
+    }
+
+    public void build(int[] vals){
+        build(vals, root, 0, maxN);
+    }
+
+    private void build(int[] vals, Node node, int ls, int rs){
+        if (ls==rs) {
+            if (ls>=vals.length) return;
+            apply(node, vals[ls], ls, rs);
+            return;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        build(vals, node.left, ls, mid);
+        build(vals, node.right, mid+1, rs);
+        reduce(node, node.left, node.right, ls, rs);
     }
 
     /**
@@ -27,6 +48,7 @@ class SingleApplySegTree {
      */
     public void apply(Node node, long val, int ls, int rs) {
         node.sum += val;
+        node.absent = node.sum == 0;
     }
 
     /**
@@ -34,6 +56,7 @@ class SingleApplySegTree {
      */
     public void reduce(Node node, Node left, Node right, int ls, int rs) {
         node.sum = left.sum + right.sum;
+        node.absent = left.absent || right.absent;
     }
 
     public void add(int i, long val) {
@@ -65,9 +88,13 @@ class SingleApplySegTree {
         int mid = ls + rs >> 1;
         if (node.left == null) {
             node.left = new Node();
+            node.left.ls = ls;
+            node.left.rs = mid;
         }
         if (node.right == null) {
             node.right = new Node();
+            node.right.ls = mid+1;
+            node.right.rs = rs;
         }
     }
 
@@ -83,6 +110,7 @@ class SingleApplySegTree {
         if (l < 0 || r > maxN || r < 0) throw new IllegalArgumentException("index:" + l + "," + r);
         if (l <= ls && rs <= r) {
             reduce(sumResult, sumResult, node, ls, rs);
+            return;
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
@@ -92,5 +120,42 @@ class SingleApplySegTree {
         if (r >= mid + 1) {
             sum(node.right, l, r, mid + 1, rs);
         }
+    }
+
+    public int mex(Node node, int ls, int rs) {
+        pushDown(node, ls, rs);
+        if (ls==rs) {
+            return node.absent ? ls : -1;
+        }
+        int mid = ls + rs >> 1;
+        if (node.left.absent) {
+            return mex(node.left, ls, mid);
+        }
+        if (node.right.absent) {
+            return mex(node.right, mid+1, rs);
+        }
+        return -1;
+    }
+}
+
+
+class ExSingleApplySegTree extends SingleApplySegTree {
+    public ExSingleApplySegTree(int maxN) {
+        super(maxN);
+    }
+
+    public int mex(SingleApplySegTree.Node node, int ls, int rs) {
+        pushDown(node, ls, rs);
+        if (ls==rs) {
+            return node.absent ? ls : -1;
+        }
+        int mid = ls + rs >> 1;
+        if (node.left.absent) {
+            return mex(node.left, ls, mid);
+        }
+        if (node.right.absent) {
+            return mex(node.right, mid+1, rs);
+        }
+        return -1;
     }
 }

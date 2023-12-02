@@ -11,7 +11,7 @@ class RankPrefixSegTree {
     static class Node {
         Node left;
         Node right;
-        long sum;
+        int sum;
 
         public Node copy() {
             Node node = new Node();
@@ -33,14 +33,14 @@ class RankPrefixSegTree {
     /**
      * 在preNode作为root的基础上更新
      */
-    public Node addCount(Node preNode, int i, long val) {
+    public Node addCount(Node preNode, int i, int val) {
         return add(preNode.copy(), i, val, 0, maxN);
     }
 
     /**
      * 当前Node的范围: [ls,rs]
      */
-    private Node add(Node node, int i, long val, int ls, int rs) {
+    private Node add(Node node, int i, int val, int ls, int rs) {
         if (i < 0 || i > maxN) {
             throw new IllegalArgumentException();
         }
@@ -65,7 +65,7 @@ class RankPrefixSegTree {
         return node;
     }
 
-    void pushDown(Node node, int ls, int rs) {
+    void pushDown(Node node, long ls, long rs) {
         if (node.left == null) {
             node.left = new Node();
         }
@@ -102,13 +102,13 @@ class RankPrefixSegTree {
      * 假设tree[i]表示i在数组中出现的次数，求数组的第k小，如果不存在返回-1
      */
     public long kSmallest(Node oldRoot, Node newRoot, long k) {
-        return queryFirstGE(oldRoot, newRoot, 0, maxN, k);
+        return queryFirstSumGE(oldRoot, newRoot, 0, maxN, k);
     }
 
     /**
      * 查找使sum([0,r])>=v最小的r，如果不存在返回-1
      */
-    private long queryFirstGE(Node oldRoot, Node newRoot, int ls, int rs, long v) {
+    private long queryFirstSumGE(Node oldRoot, Node newRoot, int ls, int rs, long v) {
         long sum = newRoot.sum - oldRoot.sum;
         if (sum < v) {
             return -1;
@@ -121,9 +121,48 @@ class RankPrefixSegTree {
         pushDown(newRoot, ls, rs);
         long leftSum = newRoot.left.sum - oldRoot.left.sum;
         if (leftSum >= v) {
-            return queryFirstGE(oldRoot.left, newRoot.left, ls, mid, v);
+            return queryFirstSumGE(oldRoot.left, newRoot.left, ls, mid, v);
         } else {
-            return queryFirstGE(oldRoot.right, newRoot.right, mid + 1, rs, v - leftSum);
+            return queryFirstSumGE(oldRoot.right, newRoot.right, mid + 1, rs, v - leftSum);
         }
     }
+
+    /**
+     * 从start(包含)向左查找第一个不为0的下标，没有则返回-1
+     */
+    public long leftwardFirst(Node oldRoot, Node newRoot, int start) {
+        return queryFirst(oldRoot, newRoot, 0, maxN, start, true);
+    }
+
+    /**
+     * 从start(包含)向右找第一个不为0的下标，没有则返回-1
+     */
+    public long rightwardFirst(Node oldRoot, Node newRoot, int start) {
+        return queryFirst(oldRoot, newRoot, 0, maxN, start, false);
+    }
+
+    private long queryFirst(Node oldRoot, Node newRoot, int ls, int rs, int start, boolean leftward) {
+        long sum = newRoot.sum - oldRoot.sum;
+        if (sum<=0)  return -1;
+        if (ls==rs)  return ls;
+        int mid = ls + rs >> 1;
+        pushDown(oldRoot, ls, rs);
+        pushDown(newRoot, ls, rs);
+        long leftSum = newRoot.left.sum - oldRoot.left.sum;
+        long rightSum = newRoot.right.sum - oldRoot.right.sum;
+        if (leftward) {
+            if (rightSum>0&&start>=mid+1) {
+                long r = queryFirst(oldRoot.right,newRoot.right,mid+1,rs,start,leftward);
+                if (r!=-1) return r;
+            }
+            return queryFirst(oldRoot.left,newRoot.left,ls,mid,start,leftward);
+        } else {
+            if (leftSum>0&&start<=mid) {
+                long r = queryFirst(oldRoot.left,newRoot.left,ls,mid,start,leftward);
+                if (r!=-1) return r;
+            }
+            return queryFirst(oldRoot.right,newRoot.right,mid+1,rs,start,leftward);
+        }
+    }
+
 }
