@@ -1,115 +1,247 @@
 package main.at;
 
 import java.io.*;
-import java.nio.channels.IllegalSelectorException;
-import java.util.*;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
+import java.util.StringTokenizer;
 
-class IntervalTree {
-    //是否合并相邻的区间
-    private static final boolean MERGE_ADJACENT = true;
 
-    //<end1,[end2,h]>
-    TreeMap<Long,long[]> map=new TreeMap<>();
+class SingleApplySegTree {
 
-    //区间[l,r]置1
-    public void add(long l, long r) {
-        modify(l, r, true);
+    static class Node {
+        Node left;
+        Node right;
+        long sum;
+        long ls, rs;
     }
 
-    //区间[l,r]置0
-    public void remove(long l, long r) {
-        modify(l, r, false);
+    int maxN;
+    Node root;
+
+    public SingleApplySegTree(int maxN) {
+        this.maxN = maxN;
+        this.root = createNode(0, maxN);
     }
 
-    private void modify(long l, long r, boolean add) {
-        long L = l, R = r;
-        Map.Entry<Long,long[]> entry = null;
-        while ((entry=map.ceilingEntry(MERGE_ADJACENT ? l-1 : l))!=null) {
-            //map上已存在区间都是互不相交的，左右端点交替出现
-            //所以只要按顺序遍历右端点>=l的区间找交集，当区间左端点>r，后续再无交集
-            if (entry.getValue()[0]>(MERGE_ADJACENT ? r+1 : r)) break;
-            R = Math.max(R, entry.getValue()[1]);
-            L = Math.min(L, entry.getValue()[0]);
-            internalDel(entry.getValue());
+    Node createNode(int ls, int rs) {
+        Node node = new Node();
+        node.ls = ls;
+        node.rs = rs;
+        return node;
+    }
+
+    public void build(int[] vals) {
+        build(vals, root, 0, maxN);
+    }
+
+    private void build(int[] vals, Node node, int ls, int rs) {
+        if (ls == rs) {
+            if (ls >= vals.length) return;
+            apply(node, 0, vals[ls], ls, rs);
+            return;
         }
-        if (add) {
-            internalPut(new long[]{L,R});
-        } else {
-            if (L<l) {
-                internalPut(new long[]{L, l - 1});
-            }
-            if (R>r) {
-                internalPut(new long[]{r+1, R});
-            }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        build(vals, node.left, ls, mid);
+        build(vals, node.right, mid + 1, rs);
+        reduce(node, node.left, node.right, ls, rs);
+    }
+
+    /**
+     * 修改单点
+     */
+    public void apply(Node node, int type, long val, int ls, int rs) {
+        node.sum += val;
+    }
+
+    /**
+     * 两个子区间统计信息进行合并，子区间可以是查询时动态构造的，而不一定是某个node的范围
+     */
+    public void reduce(Node node, Node left, Node right, int ls, int rs) {
+        node.sum = left.sum + right.sum;
+    }
+
+    public void add(int i, long val) {
+        add(root, i, 0, val, 0, maxN);
+    }
+
+    /**
+     * 当前Node的范围: [ls,rs]
+     */
+    private void add(Node node, int i, int type, long val, int ls, int rs) {
+        if (ls == rs) {
+            apply(node, type, val, ls, rs);
+            return;
+        }
+
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        //左子树[ls,mid]
+        //右子树[mid+1,rs]
+        if (i <= mid) {
+            add(node.left, i, type, val, ls, mid);
+        } else if (i >= mid + 1) {
+            add(node.right, i, type, val, mid + 1, rs);
+        }
+        reduce(node, node.left, node.right, ls, rs);
+    }
+
+    void pushDown(Node node, int ls, int rs) {
+        int mid = ls + rs >> 1;
+        if (node.left == null) {
+            node.left = createNode(ls, mid);
+        }
+        if (node.right == null) {
+            node.right = createNode(mid + 1, rs);
         }
     }
 
-    public long[] getCover(long i) {
-        Map.Entry<Long, long[]> entry = map.ceilingEntry(i);
-        if (entry==null || entry.getValue()[0]>i) return null;
-        return entry.getValue();
+    private final Node sumResult = new Node();
+
+    public long sum(int l, int r) {
+        sumResult.sum = 0;
+        sum(root, l, r, 0, maxN);
+        return sumResult.sum;
     }
 
-    //移除当前覆盖点i的连续区间，而不是只移除点i
-    public long[] removeCover(long i) {
-        long[] value = getCover(i);
-        internalDel(value);
-        return value;
+    private void sum(Node node, int l, int r, int ls, int rs) {
+        if (l < 0 || r > maxN || r < 0) throw new IllegalArgumentException("index:" + l + "," + r);
+        if (l <= ls && rs <= r) {
+            reduce(sumResult, sumResult, node, ls, rs);
+            return;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        if (l <= mid) {
+            sum(node.left, l, r, ls, mid);
+        }
+        if (r >= mid + 1) {
+            sum(node.right, l, r, mid + 1, rs);
+        }
     }
 
-    private void internalPut(long[] longs) {
-        map.put(longs[0], longs);
-        if (longs[0]!=longs[1]) {
-            map.put(longs[1], longs);
+    Node queryStrictMerge(Node node, int l, int r, int ls, int rs) {
+        if (l < 0 || r > maxN) {
+            throw new IllegalArgumentException();
         }
-    }
-    private void internalDel(long[] longs) {
-        map.remove(longs[0]);
-        if (longs[0]!=longs[1]) {
-            map.remove(longs[1]);
+        if (l <= ls && rs <= r) {
+            return node;
         }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        Node res = createNode(Math.max(ls, l), Math.min(rs, r)), leftRes = null, rightRes = null;
+        if (l <= mid) {
+            leftRes = queryStrictMerge(node.left, l, r, ls, mid);
+        }
+        if (r >= mid + 1) {
+            rightRes = queryStrictMerge(node.right, l, r, mid + 1, rs);
+        }
+        if (leftRes==null) return rightRes;
+        if (rightRes==null) return leftRes;
+        reduce(res, leftRes, rightRes, ls, rs);
+        return res;
     }
 }
-class Counter<K> extends HashMap<K,Long> {
+class StringHashSegTree extends SingleApplySegTree {
+    static int mod = (int) (1e9 + 7);
+    static int fact1 = 171;
+    static int fact2 = 13;
+    static int N = (int) 1e6 + 1;
+    static long[] p1 = new long[N];
+    static long[] p2 = new long[N];
 
-    long add(K k, long val) {
-        Long pre = put(k, getOrDefault(k, 0L) + val);
-        return (pre==null?0:pre)+val;
+    static {
+        p1[0] = 1;
+        p2[0] = 1;
+        for (int i = 1; i < N; i++) {
+            p1[i] = p1[i - 1] * fact1 % mod;
+            p2[i] = p2[i - 1] * fact2 % mod;
+        }
+    }
+
+    static class Node extends SingleApplySegTree.Node {
+        long hash1, hash2;
+        long reverseHash1, reverseHash2;
+        Node getLeft() {
+            return (Node) left;
+        }
+        Node getRight() {
+            return (Node) right;
+        }
+    }
+
+    public StringHashSegTree(int maxN) {
+        super(maxN);
     }
 
     @Override
-    public Long get(Object key) {
-        return super.getOrDefault(key, 0L);
+    Node createNode(int ls, int rs) {
+        Node node = new Node();
+        node.ls = ls;
+        node.rs = rs;
+        return node;
+    }
+
+    public void build(String s) {
+        build(s, (Node) root, 0, maxN);
+    }
+
+    private void build(String s, Node node, int ls, int rs) {
+        if (ls == rs) {
+            if (ls >= s.length()) return;
+            apply(node, s.charAt(ls), ls, rs);
+            return;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        build(s, node.getLeft(), ls, mid);
+        build(s, node.getRight(), mid + 1, rs);
+        reduce(node, node.left, node.right, ls, rs);
+    }
+
+    @Override
+    public void apply(SingleApplySegTree.Node node, int type, long val, int ls, int rs) {
+        apply((Node) node, val, ls, rs);
+    }
+
+    @Override
+    public void reduce(SingleApplySegTree.Node node, SingleApplySegTree.Node left, SingleApplySegTree.Node right,
+                       int ls, int rs) {
+        reduce((Node) node, (Node) left,(Node) right, ls, rs);
+    }
+
+    public void apply(Node node, long val, int ls, int rs) {
+        node.hash1 = node.hash2 = val;
+        node.reverseHash1 = node.reverseHash2 = val;
+    }
+
+    public void reduce(Node node, Node left, Node right, int ls, int rs) {
+        node.hash1 = (left.hash1 * p1[(int) (right.rs - right.ls + 1)] + right.hash1) % mod;
+        node.hash2 = (left.hash2 * p2[(int) (right.rs - right.ls + 1)] + right.hash2) % mod;
+        node.reverseHash1 = (right.reverseHash1 * p1[(int) (left.rs - left.ls + 1)] + left.reverseHash1) % mod;
+        node.reverseHash2 = (right.reverseHash2 * p2[(int) (left.rs - left.ls + 1)] + left.reverseHash2) % mod;
+    }
+
+    public Node hash(int l, int r) {
+        return (Node) queryStrictMerge(root, l, r, 0, maxN);
     }
 }
-public class Main {
 
+public class Main {
     public void solve() throws Exception {
         int n=nextInt(),q=nextInt();
-        int[] a=new int[n+1];
-        IntervalTree tree = new IntervalTree();
-        Counter<Integer> counter = new Counter<>();
-        for (int i = 1; i <= n; i++) {
-            a[i]=nextInt();
-            tree.add(a[i],a[i]);
-            counter.add(a[i],1);
-        }
-        for (int t = 0; t < q; t++) {
-            int i = nextInt(), x = nextInt();
-            if (counter.add(a[i],-1)==0) {
-                tree.remove(a[i],a[i]);
-            }
-            a[i]=x;
-            if (counter.add(a[i],1)==1) {
-                tree.add(a[i],a[i]);
-            }
-            long[] entry = tree.map.entrySet().iterator().next().getValue();
-            if (entry[0]!=0) {
-                System.out.println(0);
+        String s = next();
+        StringHashSegTree tree = new StringHashSegTree(n);
+        tree.build(s);
+        for (int i = 0; i < q; i++) {
+            int op=nextInt();
+            if (op==1){
+                int x = nextInt() - 1;
+                char c = next().charAt(0);
+                tree.add(x,c);
             } else {
-                System.out.println(entry[1]+1);
+                int L=nextInt()-1,R=nextInt()-1;
+                StringHashSegTree.Node sum1 = tree.hash(L, (L+R)/2);
+                StringHashSegTree.Node sum2 = tree.hash((L+R+1)/2,R);
+                out.println(sum1.hash1==sum2.reverseHash1&&sum1.hash2==sum2.reverseHash2?"Yes":"No");
             }
         }
     }

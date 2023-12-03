@@ -29,3 +29,43 @@ class StringHash {
         return (hash[r]-hash[l]*p[r-l]%mod+mod)%mod;
     }
 }
+
+class DoubleStringHash {
+    long[] hash1;
+    long[] hash2;
+    long[] p1;
+    long[] p2;
+    int mod = (int) (1e9+7);
+
+    public DoubleStringHash(String s) {
+        int n=s.length();
+        int fact1=171;
+        int fact2=13;
+        hash1=new long[n+1];
+        hash2=new long[n+1];
+        p1=new long[n+1];
+        p2=new long[n+1];
+        gen(p1, hash1, s, fact1);
+        gen(p2, hash2, s, fact2);
+    }
+
+    private void gen(long[] p, long[] hash, String s, int fact) {
+        p[0]=1;
+        int n=s.length();
+        for (int i = 1; i < n + 1; i++) {
+            hash[i]=(hash[i-1]*fact+s.charAt(i-1))%mod;
+            p[i]=p[i-1]*fact%mod;
+        }
+    }
+
+    //[L,R)
+    public long hash(int l, int r) {
+        long h1 = hash(l, r, hash1, p1);
+        long h2 = hash(l, r, hash2, p2);
+        return (h1<<31) | h2;
+    }
+
+    public long hash(int l, int r, long[] hash, long[] p) {
+        return (hash[r]-hash[l]*p[r-l]%mod+mod)%mod;
+    }
+}
