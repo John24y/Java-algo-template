@@ -18,6 +18,7 @@ package template.segtree;
  * @Date 2023/2/19
  */
 class LazySegTree {
+    static final int OP_ADD = 1;
 
     public static class Node {
         Node left;
@@ -47,7 +48,7 @@ class LazySegTree {
      * 1 更新懒标记 (不要依赖val是常量：即使add时val传参是常量比如1，pushDown时调用apply，val也会大于1)
      * 2 维护统计信息（覆盖node时必须O(1)时间更新单个node，才能实现整体O(logn)的更新）.
      */
-    void apply(Node node, int ls, int rs, long val) {
+    void apply(Node node, int ls, int rs, int type, long val) {
         node.lazyAdd += val;
         node.sum += (rs - ls + 1) * val;
     }
@@ -69,7 +70,7 @@ class LazySegTree {
     private void build(Node node, long[] vals, int ls, int rs) {
         if (ls == rs) {
             if (ls < vals.length) {
-                apply(node, ls, rs, vals[ls]);
+                apply(node, ls, rs, OP_ADD, vals[ls]);
             }
             return;
         }
@@ -81,27 +82,27 @@ class LazySegTree {
     }
 
     public void add(int l, int r, long val) {
-        add(root, l, r, val, 0, maxN);
+        add(root, l, r, OP_ADD, val, 0, maxN);
     }
 
     /**
      * 当前Node的范围: [ls,rs]
      */
-    private void add(Node node, int l, int r, long val, int ls, int rs) {
+    private void add(Node node, int l, int r, int type, long val, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            apply(node, ls, rs, val);
+            apply(node, ls, rs, type, val);
             return;
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
         if (l <= mid) {
-            add(node.left, l, r, val, ls, mid);
+            add(node.left, l, r, type, val, ls, mid);
         }
         if (r >= mid + 1) {
-            add(node.right, l, r, val, mid + 1, rs);
+            add(node.right, l, r, type, val, mid + 1, rs);
         }
         reduce(node, node.left, node.right, ls, rs);
     }
@@ -114,9 +115,10 @@ class LazySegTree {
         if (node.right == null) {
             node.right = createNode(mid + 1, rs);
         }
+        // 如果有多种懒操作变量，注意下传顺序，以及下传后的重置
         if (node.lazyAdd != 0) {
-            apply(node.left, ls, mid, node.lazyAdd);
-            apply(node.right, mid + 1, rs, node.lazyAdd);
+            apply(node.left, ls, mid, OP_ADD, node.lazyAdd);
+            apply(node.right, mid + 1, rs, OP_ADD, node.lazyAdd);
             node.lazyAdd = 0;
         }
     }
