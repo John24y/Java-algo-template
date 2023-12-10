@@ -2,10 +2,6 @@ package template.newworld;
 
 import java.math.BigInteger;
 
-/**
- * @Author Create by jiaxiaozheng
- * @Date 2023/10/16
- */
 class Uint128 {
 	private long high, low;
 
