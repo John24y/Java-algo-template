@@ -11,7 +11,7 @@ package template.segtree;
  *
  * https://www.luogu.com.cn/problem/P3372
  */
-class ScalarSegTree {
+class SumSegTree {
 
     static class Node {
         Node left;
@@ -24,7 +24,7 @@ class ScalarSegTree {
     int maxN;
     Node root;
 
-    public ScalarSegTree(int maxN) {
+    public SumSegTree(int maxN) {
         this.maxN = maxN;
         this.root = new Node();
         root.ls = 0;

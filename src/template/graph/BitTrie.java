@@ -77,6 +77,10 @@ class BitTrie {
 }
 
 
+/**
+ * 向树中添加数字用递归的方式，自顶向下（高位到低位），优势是可以更灵活的统计子树，比如求最大值、最小值，并且支持移除数字，这用迭代方式是实现不了的。
+ * 缺点是性能不如迭代方式，常数更大。
+ */
 class RecurBitTrie {
     public static final int MAX_BIT = 31;
 

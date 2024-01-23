@@ -19,13 +19,15 @@ package template.segtree;
  */
 class LazySegTree {
     static final int OP_ADD = 1;
+    static final int OP_SET = 2;
 
     public static class Node {
         Node left;
         Node right;
-        long lazyAdd;
-        long sum;
         int ls, rs;//debug用
+        long sum;
+        long lazyVal;
+        int lazyType;
     }
 
     int maxN;
@@ -45,12 +47,18 @@ class LazySegTree {
 
     /**
      * 更新范围覆盖了整个node，要做两件事：
-     * 1 更新懒标记 (不要依赖val是常量：即使add时val传参是常量比如1，pushDown时调用apply，val也会大于1)
-     * 2 维护统计信息（覆盖node时必须O(1)时间更新单个node，才能实现整体O(logn)的更新）.
+     * 1 更新懒标记
+     * 2 维护统计信息（必须O(1)时间更新单个node，才能实现整体O(logn)的更新）.
      */
     void apply(Node node, int ls, int rs, int type, long val) {
-        node.lazyAdd += val;
-        node.sum += (rs - ls + 1) * val;
+        node.lazyType = type;
+        if (type == OP_ADD) {
+            node.lazyVal += val;
+            node.sum += (rs - ls + 1) * val;
+        } else if (type==OP_SET) {
+            node.lazyVal = val;
+            node.sum = (rs - ls + 1) * val;
+        }
     }
 
     /**
@@ -115,11 +123,13 @@ class LazySegTree {
         if (node.right == null) {
             node.right = createNode(mid + 1, rs);
         }
-        // 如果有多种懒操作变量，注意下传顺序，以及下传后的重置
-        if (node.lazyAdd != 0) {
-            apply(node.left, ls, mid, OP_ADD, node.lazyAdd);
-            apply(node.right, mid + 1, rs, OP_ADD, node.lazyAdd);
-            node.lazyAdd = 0;
+        // 1 如果有多种懒操作变量，注意下传顺序，以及下传后的重置
+        // 2 lazyVal会累积，即使每次add都是val==1，下传的时候lazyVal也会>1
+        if (node.lazyType != 0) {
+            apply(node.left, ls, mid, node.lazyType, node.lazyVal);
+            apply(node.right, mid + 1, rs, node.lazyType, node.lazyVal);
+            node.lazyType = 0;
+            node.lazyVal = 0;
         }
     }
 
