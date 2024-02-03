@@ -121,7 +121,6 @@ class BitSegTree {
         }
     }
 
-    private static final Node EMPTY = new Node();
     private final Node sumAns=new Node();
 
     public long sum(int l, int r) {
@@ -135,7 +134,8 @@ class BitSegTree {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            reduce(sumAns, node, EMPTY, ls, rs);
+            // reduce是从left和right重新计算，原root的值不保留
+            reduce(sumAns, node, sumAns, ls, rs);
             return;
         }
         pushDown(node, ls, rs);
@@ -156,6 +156,7 @@ class BitSegTree {
         return sumInLevel(root, l, r, 0, maxN);
     }
 
+    private static final Node EMPTY = new Node();
     private Node sumInLevel(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();

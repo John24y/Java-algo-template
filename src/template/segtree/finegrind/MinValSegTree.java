@@ -154,7 +154,6 @@ class MinValSegTree {
         return queryNode.minId;
     }
 
-    private static final Node EMPTY = new Node();
     private final Node queryNode = new Node();
 
     private void query(Node node, int l, int r, int ls, int rs) {
@@ -162,7 +161,8 @@ class MinValSegTree {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            reduce(queryNode, node, EMPTY, ls, rs);
+            // reduce是从left和right重新计算，原root的值不保留
+            reduce(queryNode, node, queryNode, ls, rs);
             return;
         }
         pushDown(node, ls, rs);
