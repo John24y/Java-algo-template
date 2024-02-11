@@ -3,11 +3,9 @@ package template.segtree;
 /**
  * 简化版线段树，区间统计只求1个标量，而且统计运算支持结合律如 sum,max,min,and,or,mul. 但支持区间更新。
  * <p>
- * 此版本区间更新的lazy标记不用下发，而是在query时累加查询路径的lazy值，可以这样做的前提是：
- * 1 统计运算(reduce)支持结合律
- * 2 apply到node时不依赖当前sum
- * 一次区间更新操作最终有若干个node被完全覆盖，而这些node可能是叶节点，区间长度为1，也可能是区间节点，长度大于1.
- * 这里的限制是对区间应用更新操作时(apply)，必须不依赖当前区间的sum，因为更新时未统计路径上的lazy值，只从当前node上无法算出真实的sum。
+ * - 区间更新的lazy标记不用下发，而是在query时累加查询路径的lazy值，所以当前node上的sum不是准确值，
+ * 加上parent路径上的lazy值才是真实的sum。
+ * - 不支持依赖当前node.sum的操作，比如*2，或者置0，因为node.sum不只存在当前node
  *
  * https://www.luogu.com.cn/problem/P3372
  */
@@ -44,7 +42,7 @@ class SumSegTree {
     }
 
     /**
-     * O(n)设置初始值，但未必时间更短，因为可能不需要每个节点都创建出来
+     * O(n)设置初始值
      */
     void build(long[] vals) {
         build(root, vals, 0, maxN);
@@ -88,8 +86,7 @@ class SumSegTree {
         if (r >= mid + 1) {
             add(node.right, l, r, val, mid + 1, rs);
         }
-        //node.sum = reduce(node.left.sum, node.right.sum, rs-ls+1, node.lazy);// 也ok
-        node.sum = reduce(node.sum, INITIAL, Math.min(r,rs)-Math.max(l,ls)+1, val);
+        node.sum = reduce(node.left.sum, node.right.sum, rs-ls+1, node.lazy);
     }
 
     void pushDown(Node node, int ls, int rs) {

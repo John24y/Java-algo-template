@@ -63,7 +63,7 @@ class RankTree {
     }
 
     /**
-     * O(n)设置初始值，但未必时间更短，因为可能不需要每个节点都创建出来
+     * O(n)设置初始值
      */
     void build(long[] vals) {
         build(root, vals, 0, maxN);
