@@ -7,7 +7,7 @@ import java.util.Arrays;
  * @Date 2022/10/3
  */
 class FenwickTree {
-    //f[i]表示 (i-(i&-i),i] 区间的统计
+    //f[i]表示 (i-(i&-i),i] 区间的和
     long[] f;
 
     //可用下标为 [0,maxN]

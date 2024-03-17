@@ -1,10 +1,40 @@
 package template;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @Author Create by CROW
  * @Date 2023/4/15
  */
 public class Matrix {
+
+    /**
+     * 按对角线遍历矩阵，返回按顺序遍历每条线时的下标
+     */
+    public static List<List<int[]>> diagTraverse(int rowCount, int colCount) {
+        int m=rowCount, n=colCount;
+        List<List<int[]>> res = new ArrayList<>();
+        // 按左边缘遍历
+        for (int i = 0; i < m; i++) {
+            List<int[]> list = new ArrayList<>();
+            for (int ii = i, j = 0; ii >= 0 && j < n; ii--, j++) {
+                list.add(new int[] {ii, j});
+            }
+            res.add(list);
+        }
+
+        // 按下边缘遍历
+        for (int j = 1; j < n; j++) {
+            List<int[]> list = new ArrayList<>();
+            for (int i = n - 1, jj = j; i>=0 && jj<n; jj++, i--) {
+                list.add(new int[] {i, jj});
+            }
+            res.add(list);
+        }
+        return res;
+    }
 
     /**
      * 顺时针旋转矩阵90度

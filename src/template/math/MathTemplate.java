@@ -170,7 +170,7 @@ public class MathTemplate {
                     x/=p;
                     t++;
                 }
-                res.add(new int[] {x,t});
+                res.add(new int[] {p,t});
             }
             p++;
         }

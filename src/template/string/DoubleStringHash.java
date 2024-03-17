@@ -8,6 +8,7 @@ class DoubleStringHash {
     static int mod = (int) (1e9+7);
 
     static void preCompute(int MAX_LEN) {
+        MAX_LEN++; // important!
         p1=new long[MAX_LEN];
         p2=new long[MAX_LEN];
         p1[0]=1;

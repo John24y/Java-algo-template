@@ -2,39 +2,82 @@ package main.nk;
 
 import java.io.*;
 import java.util.*;
-
 public class Main {
-    Map<Integer,Integer> nums=new HashMap<>();
-    Map<Integer,Boolean> prec=new HashMap<>();
+    boolean[] sel;
+    int n,h,w;
+    int[][] rs;
+    int[][] g;
+    boolean succ;
     void solve() {
-        int n=nextInt(),m=nextInt();
-        for (int j = 0; j < n; j++) {
-            int v = Integer.parseInt(next(), 2);
-            int c=nextInt();
-            nums.put(v,nums.getOrDefault(v,0)+c);
-            for (int i = 1; i <= m; i++) {
-                prec.put((v>>>i)<<i, true);
+        n=nextInt();h=nextInt();w=nextInt();
+        sel=new boolean[n];
+        rs=new int[n][2];
+        for (int i = 0; i < n; i++) {
+            int a=nextInt(),b=nextInt();
+            rs[i][0]=a;
+            rs[i][1]=b;
+        }
+        g=new int[h][w];
+        dfs();
+        out.println(succ ? "Yes" : "No");
+    }
+    
+    int[] find(int x,int y) {
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                if (g[i][j]==0) {
+                    if (i+x>h || j+y>w) {
+                        return null;
+                    }
+                    for (int k = 0; k < y; k++) {
+                        if (g[i][k+j]==1) return null;
+                    }
+                    return new int[]{i,j};
+                }
             }
         }
-        out.println(dfs(0,m-1)[1]);
+        return null;
+    }
+    
+    void place(int x, int y, int h, int w, int v) {
+        for (int i = x; i < x+h; i++) {
+            for (int j = y; j < y+w; j++) {
+                g[i][j]=v;
+            }
+        }
     }
 
-    int[] dfs(int pre, int i) {
-        if (i==0){
-            Integer c1 = nums.getOrDefault(pre, 0);
-            Integer c2 = nums.getOrDefault(pre|1, 0);
-            return new int[] {c1+c2,Math.min(c1,c2)};
+    void dfs() {
+        if (succ) return;
+        int cnt=0;
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                cnt+=g[i][j];
+            }
         }
-        if (!prec.getOrDefault(pre,false)){
-            return new int[2];
+        if (cnt==h*w){
+            succ=true;
+            return;
         }
-        int[] r1=dfs(pre,i-1);
-        int[] r2=dfs(pre|(1<<i),i-1);
-        return new int[] {r1[0]+r2[0], Math.min(r1[0], r2[0]) + r1[1]+r2[1]};
+        for (int i = 0; i < n; i++) {
+            if (sel[i])continue;
+            for (int j = 0; j < 2; j++) {
+                int rs0 = j == 0 ? rs[i][0] : rs[i][1];
+                int rs1 = j == 0 ? rs[i][1] : rs[i][0];
+                int[] xy = find(rs0, rs1);
+                if (xy != null) {
+                    sel[i]=true;
+                    place(xy[0],xy[1],rs0, rs1,1);
+                    dfs();
+                    place(xy[0],xy[1],rs0, rs1,0);
+                    sel[i]=false;
+                }
+            }
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        int t=nextInt();
+        int t=1;
         for (int i = 0; i < t; i++) {
             new Main().solve();
         }

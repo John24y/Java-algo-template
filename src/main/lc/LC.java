@@ -1,6 +1,8 @@
 package main.lc;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 class DoubleStringHash {
     static long[] p1;
@@ -100,14 +102,22 @@ class DoubleStringHash {
 }
 class Solution {
 
-    public int minimumTimeToInitialState(String word, int k) {
-        int n=word.length();
-        DoubleStringHash hash = new DoubleStringHash(word);
-        for (int i = k; i < n; i+=k) {
-            if (hash.hash(i,n) == hash.hash(0,n-i)) {
-                return i/k;
+    public long countPrefixSuffixPairs(String[] words) {
+        int n= words.length;
+        Map<Long,Integer> hs = new HashMap<>();
+        long res=0;
+        for (int i = n-1; i >=0; i--) {
+            DoubleStringHash hash = new DoubleStringHash(words[i]);
+            int m=words[i].length();
+            res += hs.getOrDefault(hash.hash(0,m),0);
+            for (int j = 0; j < m; j++) {
+                long h1=hash.hash(0,j+1);
+                long h2=hash.hash(m-j-1,m);
+                if (h1==h2) {
+                    hs.put(h1,hs.getOrDefault(h1,0)+1);
+                }
             }
         }
-        return (n+k-1)/k;
+        return res;
     }
 }
