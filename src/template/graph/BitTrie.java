@@ -103,6 +103,7 @@ class RecurBitTrie {
         add(root, MAX_BIT - 1, val, cnt);
     }
 
+    // node是parent节点，对应 i-1
     private void add(Node node, int i, int val, int cnt) {
         if (i < 0) {
             //node是不包含第i位的前缀

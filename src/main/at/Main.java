@@ -4,58 +4,65 @@ import java.io.*;
 import java.util.*;
 
 public class Main implements Runnable {
-    public static int gcd(int a, int b) {
-        if (a == 0) {
-            return b;
-        }
-        return gcd(b % a, a);
-    }
-
-    public static int[] simplify(int x, int y) {
-        if (x == 0) return new int[]{0, 1};
-        if (y == 0) return new int[]{1, 0};
-        int gcd = gcd(Math.abs(x), Math.abs(y));
-        x /= gcd;
-        y /= gcd;
-        if (x < 0) {
-            x *= -1;
-            y *= -1;
-        }
-        return new int[]{x, y};
-    }
+    private static final int MIN = Integer.MIN_VALUE;
 
     void solve() {
         int n = nextInt();
-        List<int[]> points = new ArrayList<>();
+        int k = nextInt();
+        k = n - k;
+        int[][] a = new int[n][2];
         for (int i = 0; i < n; i++) {
-            int x=nextInt(),y=nextInt();
-            points.add(new int[]{x, y});
+            a[i][0] = nextInt();
+            a[i][1] = nextInt();
         }
 
-        int maxAlign = 0;
+        int[][] dp=new int[4][k+1];
+        for (int i = 0; i <= k; i++) {
+            dp[0][i]=MIN;
+            dp[1][i]=-1;
+            dp[2][i]=MIN;
+            dp[3][i]=-1;
+        }
+        dp[0][0] = 0;
+
         for (int i = 0; i < n; i++) {
-            for (int j = i + 1; j < n; j++) {
-                int dx = points.get(i)[0] - points.get(j)[0];
-                int dy = points.get(i)[1] - points.get(j)[1];
-                int[] simplified = simplify(dx, dy);
-                dx = simplified[0];
-                dy = simplified[1];
-                int count = 2;
-                for (int k = 0; k < n; k++) {
-                    if (k == i || k == j) continue;
-                    int tx = points.get(k)[0] - points.get(j)[0];
-                    int ty = points.get(k)[1] - points.get(j)[1];
-                    int[] simplifiedK = simplify(tx, ty);
-                    if (simplifiedK[0] == dx && simplifiedK[1] == dy) {
-                        count++;
+            for (int j = k; j > 0; j--) {
+                int c = a[i][0];
+                int v = MIN;
+                if (dp[1][j - 1] == a[i][0]) {
+                    v = dp[2][j - 1] + a[i][1];
+                } else {
+                    v = dp[0][j - 1] + a[i][1];
+                }
+
+                if (dp[1][j] == c) {
+                    dp[0][j] = Math.max(dp[0][j], v);
+                } else if (dp[3][j] == c) {
+                    dp[2][j] = Math.max(dp[2][j], v);
+                    if (dp[2][j]>dp[0][j]) {
+                        int t0=dp[0][j];
+                        int t1=dp[1][j];
+                        dp[0][j]=dp[2][j];
+                        dp[1][j]=dp[3][j];
+                        dp[2][j]=t0;
+                        dp[3][j]=t1;
+                    }
+                } else if (v >= 0) {
+                    if (v > dp[0][j]) {
+                        dp[2][j]=dp[0][j];
+                        dp[3][j]=dp[1][j];
+                        dp[0][j]=v;
+                        dp[1][j]=c;
+                    } else if (v > dp[2][j]) {
+                        dp[2][j]=v;
+                        dp[3][j]=c;
                     }
                 }
-                maxAlign = Math.max(maxAlign, count);
             }
         }
 
-        int target = n / 3;
-        System.out.println(Math.min(target, n - maxAlign));
+        int r = Math.max(dp[0][k], dp[2][k]);
+        System.out.println(r < 0 ? -1 : r);
     }
 
     public static void main(String[] args) throws Exception {

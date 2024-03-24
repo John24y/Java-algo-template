@@ -2,78 +2,80 @@ package main.nk;
 
 import java.io.*;
 import java.util.*;
+
 public class Main {
-    boolean[] sel;
-    int n,h,w;
-    int[][] rs;
-    int[][] g;
-    boolean succ;
+    int[] letc = new int[26];
+    ArrayList<Integer>[] lets = new ArrayList[26];
+    String s,t;
+    long n;
     void solve() {
-        n=nextInt();h=nextInt();w=nextInt();
-        sel=new boolean[n];
-        rs=new int[n][2];
-        for (int i = 0; i < n; i++) {
-            int a=nextInt(),b=nextInt();
-            rs[i][0]=a;
-            rs[i][1]=b;
+        n=nextLong();
+        s=next();
+        t=next();
+        for (int i = 0; i < 26; i++) {
+            lets[i]=new ArrayList<>();
         }
-        g=new int[h][w];
-        dfs();
-        out.println(succ ? "Yes" : "No");
-    }
-    
-    int[] find(int x,int y) {
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
-                if (g[i][j]==0) {
-                    if (i+x>h || j+y>w) {
-                        return null;
-                    }
-                    for (int k = 0; k < y; k++) {
-                        if (g[i][k+j]==1) return null;
-                    }
-                    return new int[]{i,j};
-                }
+        for (int i = 0; i < s.length() * 20; i++) {
+            int v=s.charAt(i%s.length()) - 'a';
+            lets[v].add(i);
+            if (i<s.length()) {
+                letc[v]+=1;
             }
         }
-        return null;
-    }
-    
-    void place(int x, int y, int h, int w, int v) {
-        for (int i = x; i < x+h; i++) {
-            for (int j = y; j < y+w; j++) {
-                g[i][j]=v;
+        long low=0,high=(long) 1e18;
+//        long low=0,high=(long) 3;
+        while (low<=high) {
+            long mid = low + (high - low + 1) / 2;
+            if (check(mid)) {
+                low=mid+1;
+            } else {
+                high=mid-1;
             }
         }
+        System.out.println(high);
     }
 
-    void dfs() {
-        if (succ) return;
-        int cnt=0;
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
-                cnt+=g[i][j];
-            }
-        }
-        if (cnt==h*w){
-            succ=true;
-            return;
-        }
-        for (int i = 0; i < n; i++) {
-            if (sel[i])continue;
-            for (int j = 0; j < 2; j++) {
-                int rs0 = j == 0 ? rs[i][0] : rs[i][1];
-                int rs1 = j == 0 ? rs[i][1] : rs[i][0];
-                int[] xy = find(rs0, rs1);
-                if (xy != null) {
-                    sel[i]=true;
-                    place(xy[0],xy[1],rs0, rs1,1);
-                    dfs();
-                    place(xy[0],xy[1],rs0, rs1,0);
-                    sel[i]=false;
+    boolean check(long k) {
+        if (k==0) return true;
+        long rep=0;
+        int i=0;
+        for (int j = 0; j < t.length(); j++) {
+            int chr=t.charAt(j)-'a';
+            if (letc[chr]==0) return false;
+            long kk=k;
+            if (kk>letc[chr]) {
+                if (kk%letc[chr] == 0) {
+                    rep+=kk/letc[chr]-1;
+                    kk=letc[chr];
+                } else {
+                    rep+=kk/letc[chr];
+                    kk%=letc[chr];
                 }
             }
+            i = findNext(lets[chr], (int)kk, i);
+            if (i>=s.length()) {
+                rep++;
+                i%=s.length();
+            }
+            if (rep>n || rep==n&&i>0){
+                return false;
+            }
         }
+        return true;
+    }
+
+    int findNext(List<Integer> list, int kk, int i) {
+        if (kk==0) return i;
+        int lo=0,hi=list.size()-1;
+        while (lo<=hi) {
+            int mid=lo+hi>>1;
+            if (list.get(mid)>=i) {
+                hi=mid-1;
+            } else {
+                lo=mid+1;
+            }
+        }
+        return list.get(lo+kk-1)+1;
     }
 
     public static void main(String[] args) throws Exception {
