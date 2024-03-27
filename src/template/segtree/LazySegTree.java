@@ -77,7 +77,7 @@ class LazySegTree {
     /**
      * 1 *累加*懒标记
      * 2 维护统计信息
-     * 3 val可能在多次懒修改中累积
+     * 3 @param val可能在多次懒修改中累积，并非总是调用add时的传参
      */
     void apply(Node node, int ls, int rs, int type, long val) {
         node.lazyType = type;
