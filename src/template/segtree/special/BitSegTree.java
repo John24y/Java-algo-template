@@ -1,4 +1,4 @@
-package template.segtree.finegrind;
+package template.segtree.special;
 
 /**
  * 每个下标只能储存0或1。
@@ -11,6 +11,30 @@ package template.segtree.finegrind;
  * @Date 2023/3/12
  */
 class BitSegTree {
+    static NodePool TMP_POOL = new NodePool();
+    static class NodePool {
+        int i = 1;
+        //数量有限，只能用作一次性临时变量，递归时要后序获取
+        Node[] pool = new Node[130];
+
+        public NodePool() {
+            for (int j = 0; j < pool.length; j++) {
+                pool[j] = new Node();
+            }
+            pool[0].init(0, -1);
+        }
+
+        Node immutableEmpty() {
+            return pool[0];
+        }
+
+        Node next(int ls, int rs) {
+            Node ret = pool[i++];
+            ret.init(ls, rs);
+            if (i == pool.length) i = 1;
+            return ret;
+        }
+    }
 
     static class Node {
         Node left;
@@ -20,7 +44,19 @@ class BitSegTree {
         OP lazy;
         int l0,r0,mx0;//左端连续0，右端连续0，区间连续0
         int l1,r1,mx1;//左端连续1，右端连续1，区间连续1
+
+        void init(int ls, int rs) {
+            this.ls = ls;
+            this.rs = rs;
+            this.l0=this.r0=this.mx0=rs-ls+1;
+            this.l1=this.r1=this.mx1=0;
+        }
+
+        int len() {
+            return rs-ls+1;
+        }
     }
+
     enum OP {
         SET,
         UNSET,
@@ -32,28 +68,19 @@ class BitSegTree {
 
     public BitSegTree(int maxN) {
         this.maxN = maxN;
-        this.root = create(0, maxN);
+        this.root = new Node();
+        this.root.init(0, maxN);
     }
 
-    Node create(int ls, int rs) {
-        Node n=new Node();
-        n.ls=ls;
-        n.rs=rs;
-        n.l0=n.r0=n.mx0=rs-ls+1;
-        n.l1=n.r1=n.mx1=0;
-        return n;
-    }
-
-    void reduce(Node node, Node left, Node right, int ls, int rs) {
-        int mid = ls + rs >> 1;
+    void reduce(Node node, Node left, Node right) {
         node.sum = left.sum + right.sum;
         node.mx0 =Math.max(left.r0+right.l0, Math.max(left.mx0, right.mx0));
-        node.l0=(left.l0==mid-ls+1)?left.l0+right.l0:left.l0;
-        node.r0=(right.r0==rs-mid)?right.r0+left.r0:right.r0;
+        node.l0=(left.l0==left.len())?left.l0+right.l0:left.l0;
+        node.r0=(right.r0==right.len())?right.r0+left.r0:right.r0;
 
         node.mx1 =Math.max(left.r1+right.l1, Math.max(left.mx1, right.mx1));
-        node.l1=(left.l1==mid-ls+1)?left.l1+right.l1:left.l1;
-        node.r1=(right.r1==rs-mid)?right.r1+left.r1:right.r1;
+        node.l1=(left.l1==left.len())?left.l1+right.l1:left.l1;
+        node.r1=(right.r1==right.len())?right.r1+left.r1:right.r1;
     }
 
     void apply(Node node, int ls, int rs, OP op) {
@@ -103,16 +130,18 @@ class BitSegTree {
             add(node.right, l, r, mid + 1, rs, op);
         }
 
-        reduce(node, node.left, node.right, ls, rs);
+        reduce(node, node.left, node.right);
     }
 
     void pushDown(Node node, int ls, int rs) {
         int mid = ls + rs >> 1;
         if (node.left == null) {
-            node.left = create(ls, mid);
+            node.left = new Node();
+            node.left.init(ls, mid);
         }
         if (node.right == null) {
-            node.right = create(mid+1, rs);
+            node.right = new Node();
+            node.right.init(mid+1, rs);
         }
         if (node.lazy!=null) {
             apply(node.left, ls, mid, node.lazy);
@@ -121,43 +150,16 @@ class BitSegTree {
         }
     }
 
-    private final Node sumAns=new Node();
-
-    public long sum(int l, int r) {
-        sumAns.sum=0;
-        sum(root, l, r, 0, maxN);
-        return sumAns.sum;
-    }
-
-    private void sum(Node node, int l, int r, int ls, int rs) {
-        if (l < 0 || r > maxN) {
-            throw new IllegalArgumentException();
-        }
-        if (l <= ls && rs <= r) {
-            // reduce是从left和right重新计算，原root的值不保留
-            reduce(sumAns, node, sumAns, ls, rs);
-            return;
-        }
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        if (l <= mid) {
-            sum(node.left, l, r, ls, mid);
-        }
-        if (r >= mid + 1) {
-            sum(node.right, l, r, mid + 1, rs);
-        }
-    }
-
-    /**
-     * sum方法为了减少创建对象，所有[l,r]范围内覆盖节点合计(reduce)到全局对象。
-     * 但有些情况下必须每一层左右区间合并，比如求区间内连续1的数量，可以用此方法。
-     */
-    public Node sumInLevel(int l, int r) {
-        return sumInLevel(root, l, r, 0, maxN);
+    public Node query(int l, int r) {
+        return query(root, l, r, 0, maxN);
     }
 
     private static final Node EMPTY = new Node();
-    private Node sumInLevel(Node node, int l, int r, int ls, int rs) {
+    static {
+        EMPTY.init(0, -1);
+    }
+
+    private Node query(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
@@ -166,14 +168,17 @@ class BitSegTree {
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
-        Node res = new Node(), leftRes = EMPTY, rightRes = EMPTY;
+        Node left, right;
+        left = right = EMPTY;
         if (l <= mid) {
-            leftRes = sumInLevel(node.left, l, r, ls, mid);
+            left = query(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            rightRes = sumInLevel(node.right, l, r, mid + 1, rs);
+            right = query(node.right, l, r, mid + 1, rs);
         }
-        reduce(res, leftRes, rightRes, ls, rs);
-        return res;
+        Node ret = TMP_POOL.next(Math.max(ls, l), Math.min(rs, r));
+        reduce(ret, left, right);
+        return ret;
     }
+
 }

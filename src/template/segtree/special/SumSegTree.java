@@ -1,11 +1,7 @@
-package template.segtree;
+package template.segtree.special;
 
 /**
- * 简化版线段树，区间统计只求1个标量，而且统计运算支持结合律如 sum,max,min,and,or,mul. 但支持区间更新。
- * <p>
- * - 区间更新的lazy标记不用下发，而是在query时累加查询路径的lazy值，所以当前node上的sum不是准确值，
- * 加上parent路径上的lazy值才是真实的sum。
- * - 不支持依赖当前node.sum的操作，比如*2，或者置0，因为node.sum不只存在当前node
+ * 简单版求和线段树，可区间查询区间求和，不支持功能扩展，需要复杂功能用 {@link LazySegTree}
  *
  * https://www.luogu.com.cn/problem/P3372
  */
@@ -14,9 +10,9 @@ class SumSegTree {
     static class Node {
         Node left;
         Node right;
-        long sum = INITIAL;
-        long lazy = INITIAL;
-        int ls, rs;//debug用
+        long sum = 0;
+        long lazy = 0;
+        int ls, rs;
     }
 
     int maxN;
@@ -29,16 +25,19 @@ class SumSegTree {
         root.rs = maxN;
     }
 
-    private static final long INITIAL = 0;
+    /**
+     * 覆盖区间更新，可做取余等操作
+     */
+    public void apply(Node node, long lazyVal, int ls, int rs) {
+        node.sum += lazyVal * (rs - ls + 1);
+        node.lazy += lazyVal;
+    }
 
     /**
-     * 区间统计值合并
-     * left,right: 左右子区间统计值
-     * lazyVal: 未下传子树的懒更新
-     * coverLen: lazyVal影响的区间长度
+     * 区间统计值合并，可做取余等操作
      */
-    public long reduce(long left, long right, long coverLen, long lazyVal) {
-        return left + right + coverLen * lazyVal;
+    public long reduce(long left, long right) {
+        return left + right;
     }
 
     /**
@@ -57,7 +56,7 @@ class SumSegTree {
         int mid = ls + rs >> 1;
         build(node.left,vals, ls, mid);
         build(node.right,vals,mid + 1, rs);
-        node.sum = reduce(node.left.sum, node.right.sum, 0, INITIAL);
+        node.sum = reduce(node.left.sum, node.right.sum);
     }
 
     public void add(int l, int r, long val) {
@@ -71,8 +70,7 @@ class SumSegTree {
         if (l < 0 || r > maxN || r < 0) throw new IllegalArgumentException("index:" + l + "," + r);
         if (l <= ls && rs <= r) {
             //[l,r]覆盖了当前子树
-            node.sum = reduce(node.sum, INITIAL, (rs - ls + 1), val);
-            node.lazy = reduce(node.lazy, val, 0, INITIAL);
+            apply(node, val, ls, rs);
             return;
         }
 
@@ -86,7 +84,7 @@ class SumSegTree {
         if (r >= mid + 1) {
             add(node.right, l, r, val, mid + 1, rs);
         }
-        node.sum = reduce(node.left.sum, node.right.sum, rs-ls+1, node.lazy);
+        node.sum = reduce(node.left.sum, node.right.sum);
     }
 
     void pushDown(Node node, int ls, int rs) {
@@ -101,6 +99,11 @@ class SumSegTree {
             node.right.ls = mid + 1;
             node.right.rs = rs;
         }
+        if (node.lazy != 0) {
+            apply(node.left, node.lazy, ls, mid);
+            apply(node.right, node.lazy, mid + 1, rs);
+            node.lazy = 0;
+        }
     }
 
     public long sum(int l, int r) {
@@ -114,15 +117,14 @@ class SumSegTree {
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
-        int cover=Math.min(r,rs)-Math.max(l,ls)+1;
-        long left = INITIAL;
-        long right = INITIAL;
+        long left = 0;
+        long right = 0;
         if (l <= mid) {
             left = sum(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
             right = sum(node.right, l, r, mid + 1, rs);
         }
-        return reduce(left, right, cover, node.lazy);
+        return reduce(left, right);
     }
 }

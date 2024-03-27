@@ -21,13 +21,48 @@ class LazySegTree {
     static final int OP_ADD = 1;
     static final int OP_SET = 2;
 
+    static NodePool TMP_POOL = new NodePool();
+    static class NodePool {
+        int i = 1;
+        Node[] pool = new Node[129];
+
+        public NodePool() {
+            for (int j = 0; j < pool.length; j++) {
+                pool[j] = new Node();
+            }
+            pool[0].init(0, -1);
+        }
+
+        Node immutableEmpty() {
+            return pool[0];
+        }
+
+        Node next(int ls, int rs) {
+            Node ret = pool[i++];
+            ret.initForQuery(ls, rs);
+            if (i == pool.length) i = 1;
+            return ret;
+        }
+    }
+
     public static class Node {
         Node left;
         Node right;
-        int ls, rs;//debug用
+        int ls, rs;
         long sum;
         long lazyVal;
         int lazyType;
+
+        void init(int ls, int rs) {
+            this.ls = ls;
+            this.rs = rs;
+        }
+
+        void initForQuery(int ls, int rs) {
+            this.ls = ls;
+            this.rs = rs;
+            sum = 0;
+        }
     }
 
     int maxN;
@@ -35,20 +70,14 @@ class LazySegTree {
 
     public LazySegTree(int maxN) {
         this.maxN = maxN;
-        this.root = createNode(0, maxN);
-    }
-
-    Node createNode(int ls, int rs) {
-        Node node = new Node();
-        node.ls = ls;
-        node.rs = rs;
-        return node;
+        this.root = new Node();
+        this.root.init(0, maxN);
     }
 
     /**
-     * 更新范围覆盖了整个node，要做两件事：
-     * 1 更新懒标记
-     * 2 维护统计信息（必须O(1)时间更新单个node，才能实现整体O(logn)的更新）.
+     * 1 *累加*懒标记
+     * 2 维护统计信息
+     * 3 val可能在多次懒修改中累积
      */
     void apply(Node node, int ls, int rs, int type, long val) {
         node.lazyType = type;
@@ -61,9 +90,6 @@ class LazySegTree {
         }
     }
 
-    /**
-     * 两个子区间统计信息进行合并，子区间可以是查询时动态构造的，而不一定是某个node的范围
-     */
     void reduce(Node node, Node left, Node right, int ls, int rs) {
         node.sum = left.sum + right.sum;
     }
@@ -118,13 +144,14 @@ class LazySegTree {
     void pushDown(Node node, int ls, int rs) {
         int mid = ls + rs >> 1;
         if (node.left == null) {
-            node.left = createNode(ls, mid);
+            node.left = new Node();
+            node.left.init(ls, mid);
         }
         if (node.right == null) {
-            node.right = createNode(mid + 1, rs);
+            node.right = new Node();
+            node.right.init(mid+1, rs);
         }
-        // 1 如果有多种懒操作变量，注意下传顺序，以及下传后的重置
-        // 2 lazyVal会累积，即使每次add都是val==1，下传的时候lazyVal也会>1
+        // 如果有多种懒操作变量，注意下传顺序，以及下传后的重置
         if (node.lazyType != 0) {
             apply(node.left, ls, mid, node.lazyType, node.lazyVal);
             apply(node.right, mid + 1, rs, node.lazyType, node.lazyVal);
@@ -133,37 +160,11 @@ class LazySegTree {
         }
     }
 
-    private final Node ansNode = new Node();
-
     public long sum(int l, int r) {
-        ansNode.sum = 0;
-        query(root, l, r, 0, maxN);
-        return ansNode.sum;
+        return query(root, l, r, 0, maxN).sum;
     }
 
-    private void query(Node node, int l, int r, int ls, int rs) {
-        if (l < 0 || r > maxN) {
-            throw new IllegalArgumentException();
-        }
-        if (l <= ls && rs <= r) {
-            reduce(ansNode, node, ansNode, ls, rs);
-            return;
-        }
-        pushDown(node, ls, rs);
-        int mid = ls + rs >> 1;
-        if (l <= mid) {
-            query(node.left, l, r, ls, mid);
-        }
-        if (r >= mid + 1) {
-            query(node.right, l, r, mid + 1, rs);
-        }
-    }
-
-    /**
-     * 查询时总是左右区间合并，而不是合并到全局的queryNode
-     * 查询过程需要创建logn个对象，但有时候必须这样合并，比如统计区间内连续1的数量
-     */
-    public Node queryStrictMerge(Node node, int l, int r, int ls, int rs) {
+    private Node query(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
@@ -172,18 +173,19 @@ class LazySegTree {
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
-        Node res = createNode(Math.max(ls, l), Math.min(rs, r)), leftRes = null, rightRes = null;
+        Node left, right;
+        left = right = TMP_POOL.immutableEmpty();
         if (l <= mid) {
-            leftRes = queryStrictMerge(node.left, l, r, ls, mid);
+            left = query(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            rightRes = queryStrictMerge(node.right, l, r, mid + 1, rs);
+            right = query(node.right, l, r, mid + 1, rs);
         }
-        if (leftRes == null) return rightRes;
-        if (rightRes == null) return leftRes;
-        reduce(res, leftRes, rightRes, ls, rs);
-        return res;
+        Node ret = TMP_POOL.next(Math.max(ls, l), Math.min(rs, r));
+        reduce(ret, left, right, ret.ls, ret.rs);
+        return ret;
     }
+
 }
 
 /**

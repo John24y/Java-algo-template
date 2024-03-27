@@ -1,14 +1,36 @@
-package template.segtree.finegrind;
+package template.segtree.special;
 
 
 /**
  * https://leetcode.com/problems/largest-rectangle-in-histogram
  */
 class MinValSegTree {
-    //对查询结果相加需要注意溢出
-    static final long INIT = Long.MAX_VALUE;
     static final int OP_ADD = 1;
     static final int OP_SET = 2;
+    static NodePool TMP_POOL = new NodePool();
+
+    static class NodePool {
+        int i = 1;
+        Node[] pool = new Node[129];
+
+        public NodePool() {
+            for (int j = 0; j < pool.length; j++) {
+                pool[j] = new Node();
+            }
+            pool[0].init(0, -1);
+        }
+
+        Node immutableEmpty() {
+            return pool[0];
+        }
+
+        Node next(int ls, int rs) {
+            Node ret = pool[i++];
+            ret.initForQuery(ls, rs);
+            if (i == pool.length) i = 1;
+            return ret;
+        }
+    }
 
     static class Node {
         Node left;
@@ -16,10 +38,21 @@ class MinValSegTree {
         int ls, rs;//debug用
 
         long minVal;
-        int minId;//index最小的
         int lazyType;
         long lazyVal;
         long sum;
+
+        void init(int ls, int rs) {
+            this.ls = ls;
+            this.rs = rs;
+        }
+
+        void initForQuery(int ls, int rs) {
+            this.ls = ls;
+            this.rs = rs;
+            sum = 0;
+            minVal = Long.MAX_VALUE; // 累加注意溢出
+        }
     }
 
     int maxN;
@@ -27,25 +60,22 @@ class MinValSegTree {
 
     public MinValSegTree(int maxN) {
         this.maxN = maxN;
-        this.root = createNode(0, maxN);
-        root.ls = 0;
-        root.rs = maxN;
+        this.root = new Node();
+        this.root.init(0, maxN);
     }
 
-    Node createNode(int ls, int rs) {
-        Node r = new Node();
-        r.minId = ls;
-        r.minVal = INIT;
-        return r;
-    }
-
+    /**
+     * 1 *累加*懒标记
+     * 2 维护统计信息
+     * 3 val可能在多次懒修改中累积
+     */
     void apply(Node node, int ls, int rs, int type, long val) {
         node.lazyType = type;
         if (type == OP_ADD) {
             node.lazyVal += val;
             node.sum += (rs - ls + 1) * val;
             node.minVal -= val;
-        } else if (type==OP_SET) {
+        } else if (type == OP_SET) {
             node.lazyVal = val;
             node.sum = (rs - ls + 1) * val;
             node.minVal = val;
@@ -54,13 +84,7 @@ class MinValSegTree {
 
     void reduce(Node node, Node left, Node right, int ls, int rs) {
         node.sum = left.sum + right.sum;
-        if (right.minVal < left.minVal) {
-            node.minId = right.minId;
-            node.minVal = right.minVal;
-        } else {
-            node.minId = left.minId;
-            node.minVal = left.minVal;
-        }
+        node.minVal = Math.min(left.minVal, right.minVal);
     }
 
     public void add(int l, int r, long val) {
@@ -76,14 +100,15 @@ class MinValSegTree {
     }
 
     private void build(Node node, int[] vals, int ls, int rs) {
-        if (ls==rs) {
-            apply(node, ls, rs, OP_SET, ls>=vals.length ? INIT : vals[ls]);
+        if (ls == rs) {
+            if (ls>=vals.length) return;
+            apply(node, ls, rs, OP_SET, vals[ls]);
             return;
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
-        build(node.left,vals, ls, mid);
-        build(node.right,vals,mid + 1, rs);
+        build(node.left, vals, ls, mid);
+        build(node.right, vals, mid + 1, rs);
         reduce(node, node.left, node.right, ls, rs);
     }
 
@@ -116,14 +141,12 @@ class MinValSegTree {
     void pushDown(Node node, int ls, int rs) {
         int mid = ls + rs >> 1;
         if (node.left == null) {
-            node.left = createNode(ls, mid);
-            node.left.ls = ls;
-            node.left.rs = mid;
+            node.left = new Node();
+            node.left.init(ls, mid);
         }
         if (node.right == null) {
-            node.right = createNode(mid + 1, rs);
-            node.right.ls = mid + 1;
-            node.right.rs = rs;
+            node.right = new Node();
+            node.right.init(mid+1, rs);
         }
         if (node.lazyType != 0) {
             apply(node.left, ls, mid, node.lazyType, node.lazyVal);
@@ -133,46 +156,30 @@ class MinValSegTree {
         }
     }
 
-    public long sum(int l, int r) {
-        queryNode.sum = 0;
-        query(root, l, r, 0, maxN);
-        return queryNode.sum;
+    public Node query(int l, int r) {
+        return query(root, l, r, 0, maxN);
     }
 
-    public long queryMinVal(int l, int r) {
-        queryNode.minVal = INIT;
-        queryNode.minId = -1;
-        query(root, l, r, 0, maxN);
-        return queryNode.minVal;
-    }
-
-    //查询的下标，如果有多个则取下标最小的
-    public int queryMinId(int l, int r) {
-        queryNode.minVal = INIT;
-        queryNode.minId = -1;
-        query(root, l, r, 0, maxN);
-        return queryNode.minId;
-    }
-
-    private final Node queryNode = new Node();
-
-    private void query(Node node, int l, int r, int ls, int rs) {
+    private Node query(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
         if (l <= ls && rs <= r) {
-            // reduce是从left和right重新计算，原root的值不保留
-            reduce(queryNode, node, queryNode, ls, rs);
-            return;
+            return node;
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
+        Node left, right;
+        left = right = TMP_POOL.immutableEmpty();
         if (l <= mid) {
-            query(node.left, l, r, ls, mid);
+            left = query(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            query(node.right, l, r, mid + 1, rs);
+            right = query(node.right, l, r, mid + 1, rs);
         }
+        Node ret = TMP_POOL.next(Math.max(ls, l), Math.min(rs, r));
+        reduce(ret, left, right, ret.ls, ret.rs);
+        return ret;
     }
 
     /**

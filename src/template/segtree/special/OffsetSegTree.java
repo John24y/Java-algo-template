@@ -1,4 +1,4 @@
-package template.segtree.finegrind;
+package template.segtree.special;
 
 /**
  * 区间赋值线段树，但只能覆盖赋值，不能累加。且赋值是相对下标的偏移。

@@ -1,12 +1,12 @@
 package template.segtree;
 
 /**
- * 主席树，可实现静态数组查询区间排名。
+ * 可持久化线段树，可实现静态数组查询区间排名。
  *
  * @Author Create by CROW
  * @Date 2023/4/29
  */
-class RankPrefixSegTree {
+class PersistSegTree {
 
     static class Node {
         Node left;
@@ -25,7 +25,7 @@ class RankPrefixSegTree {
     int maxN;
     Node root;
 
-    public RankPrefixSegTree(int maxN) {
+    public PersistSegTree(int maxN) {
         this.maxN = maxN;
         this.root = new Node();
     }

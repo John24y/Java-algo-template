@@ -1,81 +1,163 @@
 package main.at;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.StringTokenizer;
+class SumSegTree {
 
-public class Main implements Runnable {
-    private static final int MIN = Integer.MIN_VALUE;
+    static class Node {
+        Node left;
+        Node right;
+        long sum = 0;
+        long lazy = 0;
+        int ls, rs;
+    }
 
-    void solve() {
-        int n = nextInt();
-        int k = nextInt();
-        k = n - k;
-        int[][] a = new int[n][2];
-        for (int i = 0; i < n; i++) {
-            a[i][0] = nextInt();
-            a[i][1] = nextInt();
+    int maxN;
+    Node root;
+
+    public SumSegTree(int maxN) {
+        this.maxN = maxN;
+        this.root = new Node();
+        root.ls = 0;
+        root.rs = maxN;
+    }
+
+    /**
+     * 覆盖区间更新，可做取余等操作
+     */
+    public void apply(Node node, long lazyVal, int ls, int rs) {
+        node.sum += lazyVal * (rs - ls + 1);
+        node.lazy += lazyVal;
+    }
+
+    /**
+     * 区间统计值合并，可做取余等操作
+     */
+    public long reduce(long left, long right) {
+        return left + right;
+    }
+
+
+    /**
+     * O(n)设置初始值
+     */
+    void build(long[] vals) {
+        build(root, vals, 0, maxN);
+    }
+
+    private void build(Node node, long[] vals, int ls, int rs) {
+        if (ls==rs) {
+            node.sum = vals[ls];
+            return;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        build(node.left,vals, ls, mid);
+        build(node.right,vals,mid + 1, rs);
+        node.sum = reduce(node.left.sum, node.right.sum);
+    }
+
+    public void add(int l, int r, long val) {
+        add(root, l, r, val, 0, maxN);
+    }
+
+    /**
+     * 当前Node的范围: [ls,rs]
+     */
+    private void add(Node node, int l, int r, long val, int ls, int rs) {
+        if (l < 0 || r > maxN || r < 0) throw new IllegalArgumentException("index:" + l + "," + r);
+        if (l <= ls && rs <= r) {
+            //[l,r]覆盖了当前子树
+            apply(node, val, ls, rs);
+            return;
         }
 
-        int[][] dp=new int[4][k+1];
-        for (int i = 0; i <= k; i++) {
-            dp[0][i]=MIN;
-            dp[1][i]=-1;
-            dp[2][i]=MIN;
-            dp[3][i]=-1;
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        //左子树[ls,mid]
+        //右子树[mid+1,rs]
+        if (l <= mid) {
+            add(node.left, l, r, val, ls, mid);
         }
-        dp[0][0] = 0;
+        if (r >= mid + 1) {
+            add(node.right, l, r, val, mid + 1, rs);
+        }
+        node.sum = reduce(node.left.sum, node.right.sum);
+    }
 
+    void pushDown(Node node, int ls, int rs) {
+        int mid = ls + rs >> 1;
+        if (node.left == null) {
+            node.left = new Node();
+            node.left.ls = ls;
+            node.left.rs = mid;
+        }
+        if (node.right == null) {
+            node.right = new Node();
+            node.right.ls = mid + 1;
+            node.right.rs = rs;
+        }
+        if (node.lazy != 0) {
+            apply(node.left, node.lazy, ls, mid);
+            apply(node.right, node.lazy, mid + 1, rs);
+            node.lazy = 0;
+        }
+    }
+
+    public long sum(int l, int r) {
+        return sum(root, l, r, 0, maxN);
+    }
+
+    private long sum(Node node, int l, int r, int ls, int rs) {
+        if (l < 0 || r > maxN || r < 0) throw new IllegalArgumentException("index:" + l + "," + r);
+        if (l <= ls && rs <= r) {
+            return node.sum;
+        }
+        pushDown(node, ls, rs);
+        int mid = ls + rs >> 1;
+        long left = 0;
+        long right = 0;
+        if (l <= mid) {
+            left = sum(node.left, l, r, ls, mid);
+        }
+        if (r >= mid + 1) {
+            right = sum(node.right, l, r, mid + 1, rs);
+        }
+        return reduce(left, right);
+    }
+}
+public class Main {
+
+    void slv() {
+        int n=nextInt(),m=nextInt();
+        SumSegTree tree = new SumSegTree(n);
+        long[] ar=new long[n+1];
         for (int i = 0; i < n; i++) {
-            for (int j = k; j > 0; j--) {
-                int c = a[i][0];
-                int v = MIN;
-                if (dp[1][j - 1] == a[i][0]) {
-                    v = dp[2][j - 1] + a[i][1];
-                } else {
-                    v = dp[0][j - 1] + a[i][1];
-                }
-
-                if (dp[1][j] == c) {
-                    dp[0][j] = Math.max(dp[0][j], v);
-                } else if (dp[3][j] == c) {
-                    dp[2][j] = Math.max(dp[2][j], v);
-                    if (dp[2][j]>dp[0][j]) {
-                        int t0=dp[0][j];
-                        int t1=dp[1][j];
-                        dp[0][j]=dp[2][j];
-                        dp[1][j]=dp[3][j];
-                        dp[2][j]=t0;
-                        dp[3][j]=t1;
-                    }
-                } else if (v >= 0) {
-                    if (v > dp[0][j]) {
-                        dp[2][j]=dp[0][j];
-                        dp[3][j]=dp[1][j];
-                        dp[0][j]=v;
-                        dp[1][j]=c;
-                    } else if (v > dp[2][j]) {
-                        dp[2][j]=v;
-                        dp[3][j]=c;
-                    }
-                }
+            ar[i+1]=nextLong();
+//            tree.add(i+1,i+1,ar[i+1]);
+        }
+        tree.build(ar);
+        for (int i = 0; i < m; i++) {
+            int op = nextInt();
+            if (op==1) {
+                int x=nextInt(),y=nextInt();
+                tree.add(x,y,nextLong());
+            } else {
+                int x=nextInt(),y=nextInt();
+                long sum = tree.sum(x, y);
+                out.println(sum);
             }
         }
-
-        int r = Math.max(dp[0][k], dp[2][k]);
-        System.out.println(r < 0 ? -1 : r);
     }
 
-    public static void main(String[] args) throws Exception {
-        new Thread(null, new Main(), "CustomThread", 1024 * 1024 * 100).start();
-    }
-
-    @Override
-    public void run() {
-        new Main().solve();
+    public static void main(String[] args) throws IOException {
+        new Main().slv();
         out.flush();
     }
 
-    static PrintWriter out = new PrintWriter(System.out, false);
+    static PrintWriter out = new PrintWriter(System.out, true);
     static InputReader in = new InputReader(System.in);
     static String next() { return in.next(); }
     static int nextInt() { return Integer.parseInt(in.next()); }
@@ -101,4 +183,3 @@ public class Main implements Runnable {
         }
     }
 }
-
