@@ -6,7 +6,7 @@ package template.segtree;
  * <p>
  * 对比FenwickTree：FenwickTree在查询时只支持前缀查询，实现最大值最小值查询很麻烦。而线段树可以任意区间查询。
  */
-class SingleApplySegTree {
+class SimpleSegTree {
 
     static class Node {
         Node left;
@@ -18,7 +18,7 @@ class SingleApplySegTree {
     int maxN;
     Node root;
 
-    public SingleApplySegTree(int maxN) {
+    public SimpleSegTree(int maxN) {
         this.maxN = maxN;
         this.root = createNode(0, maxN);
     }
@@ -143,12 +143,12 @@ class SingleApplySegTree {
     }
 }
 
-class MexSegTree extends SingleApplySegTree {
+class MexSegTree extends SimpleSegTree {
     public MexSegTree(int maxN) {
         super(maxN);
     }
 
-    static class Node extends SingleApplySegTree.Node {
+    static class Node extends SimpleSegTree.Node {
         boolean absent = true;
 
         Node getLeft() {
@@ -169,12 +169,12 @@ class MexSegTree extends SingleApplySegTree {
     }
 
     @Override
-    public void apply(SingleApplySegTree.Node node, int type, long val, int ls, int rs) {
+    public void apply(SimpleSegTree.Node node, int type, long val, int ls, int rs) {
         apply((Node) node, type, val, ls, rs);
     }
 
     @Override
-    public void reduce(SingleApplySegTree.Node node, SingleApplySegTree.Node left, SingleApplySegTree.Node right,
+    public void reduce(SimpleSegTree.Node node, SimpleSegTree.Node left, SimpleSegTree.Node right,
                        int ls, int rs) {
         reduce((Node) node, (Node) left, (Node) right, ls, rs);
     }
@@ -214,7 +214,7 @@ class MexSegTree extends SingleApplySegTree {
 /**
  * 查询任意子串的hash值，包括正反序、双因子组合的4种哈希值
  */
-class StringHashSegTree extends SingleApplySegTree {
+class StringHashSegTree extends SimpleSegTree {
     static int mod = (int) (1e9 + 7);
     static int fact1 = 171;
     static int fact2 = 13;
@@ -231,7 +231,7 @@ class StringHashSegTree extends SingleApplySegTree {
         }
     }
 
-    static class Node extends SingleApplySegTree.Node {
+    static class Node extends SimpleSegTree.Node {
         long hash1, hash2;
         long reverseHash1, reverseHash2;
         Node getLeft() {
@@ -272,12 +272,12 @@ class StringHashSegTree extends SingleApplySegTree {
     }
 
     @Override
-    public void apply(SingleApplySegTree.Node node, int type, long val, int ls, int rs) {
+    public void apply(SimpleSegTree.Node node, int type, long val, int ls, int rs) {
         apply((Node) node, val, ls, rs);
     }
 
     @Override
-    public void reduce(SingleApplySegTree.Node node, SingleApplySegTree.Node left, SingleApplySegTree.Node right,
+    public void reduce(SimpleSegTree.Node node, SimpleSegTree.Node left, SimpleSegTree.Node right,
                        int ls, int rs) {
         reduce((Node) node, (Node) left,(Node) right, ls, rs);
     }

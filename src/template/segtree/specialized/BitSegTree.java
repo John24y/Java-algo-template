@@ -1,4 +1,4 @@
-package template.segtree.special;
+package template.segtree.specialized;
 
 /**
  * 每个下标只能储存0或1。

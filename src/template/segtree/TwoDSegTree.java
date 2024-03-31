@@ -7,21 +7,21 @@ import java.util.List;
  * 树状数组套线段树。可以求动态数组的区间上第k小
  */
 class TwoDSegTree {
-    SingleApplySegTree[] trees;
+    SimpleSegTree[] trees;
     int maxX, maxY;
 
     class VirtualNode {
-        List<SingleApplySegTree.Node> listPos=new ArrayList<>();
-        List<SingleApplySegTree.Node> listNeg=new ArrayList<>();
+        List<SimpleSegTree.Node> listPos=new ArrayList<>();
+        List<SimpleSegTree.Node> listNeg=new ArrayList<>();
         long sum() {
             long res=0;
-            for (SingleApplySegTree.Node node : listPos) res+=node.sum;
-            for (SingleApplySegTree.Node node : listNeg) res-=node.sum;
+            for (SimpleSegTree.Node node : listPos) res+=node.sum;
+            for (SimpleSegTree.Node node : listNeg) res-=node.sum;
             return res;
         }
         void left() {
             for (int k=0;k<2;k++){
-                List<SingleApplySegTree.Node> list = k==0?listPos:listNeg;
+                List<SimpleSegTree.Node> list = k==0?listPos:listNeg;
                 int j=0;
                 for (int i = 0; i < list.size(); i++) {
                     if (list.get(i).left!=null) {
@@ -34,7 +34,7 @@ class TwoDSegTree {
         }
         void right() {
             for (int k=0;k<2;k++){
-                List<SingleApplySegTree.Node> list = k==0?listPos:listNeg;
+                List<SimpleSegTree.Node> list = k==0?listPos:listNeg;
                 int j=0;
                 for (int i = 0; i < list.size(); i++) {
                     if (list.get(i).right!=null) {
@@ -48,11 +48,11 @@ class TwoDSegTree {
     }
 
     public TwoDSegTree(int maxX, int maxY) {
-        trees=new SingleApplySegTree[maxX+2];
+        trees=new SimpleSegTree[maxX+2];
         this.maxX=maxX;
         this.maxY=maxY;
         for (int i = 1; i < trees.length; i++) {
-            trees[i] = new SingleApplySegTree(maxY);
+            trees[i] = new SimpleSegTree(maxY);
         }
     }
 
@@ -88,10 +88,10 @@ class TwoDSegTree {
         }
         int mid = ls + rs >> 1;
         long leftSum=0;
-        for (SingleApplySegTree.Node n : node.listPos) {
+        for (SimpleSegTree.Node n : node.listPos) {
             if (n.left!=null)leftSum+=n.left.sum;
         }
-        for (SingleApplySegTree.Node n : node.listNeg) {
+        for (SimpleSegTree.Node n : node.listNeg) {
             if (n.left!=null)leftSum-=n.left.sum;
         }
         if (leftSum >= k) {

@@ -1,10 +1,6 @@
-package template.segtree.special;
+package template.segtree.specialized;
 
-
-/**
- * https://leetcode.com/problems/largest-rectangle-in-histogram
- */
-class MinValSegTree {
+class MaxValSegTree {
     static final int OP_ADD = 1;
     static final int OP_SET = 2;
     static NodePool TMP_POOL = new NodePool();
@@ -37,7 +33,7 @@ class MinValSegTree {
         Node right;
         int ls, rs;//debug用
 
-        long minVal;
+        long maxVal;
         int lazyType;
         long lazyVal;
         long sum;
@@ -51,14 +47,14 @@ class MinValSegTree {
             this.ls = ls;
             this.rs = rs;
             sum = 0;
-            minVal = Long.MAX_VALUE; // 累加注意溢出
+            maxVal = Long.MIN_VALUE;
         }
     }
 
     int maxN;
     Node root;
 
-    public MinValSegTree(int maxN) {
+    public MaxValSegTree(int maxN) {
         this.maxN = maxN;
         this.root = new Node();
         this.root.init(0, maxN);
@@ -74,34 +70,26 @@ class MinValSegTree {
         if (type == OP_ADD) {
             node.lazyVal += val;
             node.sum += (rs - ls + 1) * val;
-            node.minVal -= val;
+            node.maxVal += val;
         } else if (type == OP_SET) {
             node.lazyVal = val;
             node.sum = (rs - ls + 1) * val;
-            node.minVal = val;
+            node.maxVal = val;
         }
     }
 
     void reduce(Node node, Node left, Node right, int ls, int rs) {
         node.sum = left.sum + right.sum;
-        node.minVal = Math.min(left.minVal, right.minVal);
+        node.maxVal = Math.max(left.maxVal, right.maxVal);
     }
 
-    public void add(int l, int r, long val) {
-        update(root, l, r, 0, maxN, OP_ADD, val);
-    }
-
-    public void set(int l, int r, long val) {
-        update(root, l, r, 0, maxN, OP_SET, val);
-    }
-
-    void build(int[] vals) {
+    void build(long[] vals) {
         build(root, vals, 0, maxN);
     }
 
-    private void build(Node node, int[] vals, int ls, int rs) {
+    private void build(Node node, long[] vals, int ls, int rs) {
         if (ls == rs) {
-            if (ls>=vals.length) return;
+            if (ls >= vals.length) return;
             apply(node, ls, rs, OP_SET, vals[ls]);
             return;
         }
@@ -110,6 +98,14 @@ class MinValSegTree {
         build(node.left, vals, ls, mid);
         build(node.right, vals, mid + 1, rs);
         reduce(node, node.left, node.right, ls, rs);
+    }
+
+    public void add(int l, int r, long val) {
+        update(root, l, r, 0, maxN, OP_ADD, val);
+    }
+
+    public void set(int l, int r, long val) {
+        update(root, l, r, 0, maxN, OP_SET, val);
     }
 
     /**
@@ -149,6 +145,8 @@ class MinValSegTree {
             node.right.init(mid+1, rs);
         }
         if (node.lazyType != 0) {
+            // 1 如果有多种懒操作变量，注意下传顺序，以及下传后的重置
+            // 2 lazyVal会累积，即使每次add都是val==1，下传的时候lazyVal也会>1
             apply(node.left, ls, mid, node.lazyType, node.lazyVal);
             apply(node.right, mid + 1, rs, node.lazyType, node.lazyVal);
             node.lazyType = 0;
@@ -182,66 +180,28 @@ class MinValSegTree {
         return ret;
     }
 
-    /**
-     * 查询[l,r]上第一个 < x的下标 (注意不含等于)
-     *
-     * @param fromLeft true 找左边第一个，false 找右边第一个
-     * @return -1 表示找不到
-     */
-    public int queryFirstLess(int l, int r, int x, boolean fromLeft) {
-        int[] order = fromLeft ? new int[]{0, 1} : new int[]{1, 0};
-        return queryFirstLess(root, l, r, x, order, 0, maxN);
-    }
-
-    private int queryFirstLess(Node node, int l, int r, int x, int[] order, int ls, int rs) {
-        int mid = ls + rs >> 1;
-        if (node.minVal >= x) {
-            return -1;
-        }
-        if (ls == rs) {
-            return ls;
-        }
-        pushDown(node, ls, rs);
-
-        for (int ord : order) {
-            if (ord == 0 && l <= mid) {
-                int ret = queryFirstLess(node.left, l, r, x, order, ls, mid);
-                if (ret != -1) {
-                    return ret;
-                }
-            }
-            if (ord == 1 && r >= mid + 1) {
-                int ret = queryFirstLess(node.right, l, r, x, order, mid + 1, rs);
-                if (ret != -1) {
-                    return ret;
-                }
-            }
-        }
-        return -1;
-    }
 }
 
+class ExMaxValSegTree extends MaxValSegTree {
 
-class ExMinValSegTree extends MinValSegTree {
-
-    public ExMinValSegTree(int maxN) {
+    public ExMaxValSegTree(int maxN) {
         super(maxN);
     }
 
     /**
-     * 查询[l,r]上第一个 < x的下标 (注意不含等于)
+     * 查询[l,r]上第一个>x的下标
      *
      * @param fromLeft true 找左边第一个，false 找右边第一个
      * @return -1 表示找不到
      */
-    public int queryFirstLess(int l, int r, int x, boolean fromLeft) {
+    public int queryFirstGreater(int l, int r, int x, boolean fromLeft) {
         int[] order = fromLeft ? new int[]{0, 1} : new int[]{1, 0};
-        return queryFirstLess(root, l, r, x, order, 0, maxN);
+        return queryFirstGreater(root, l, r, x, order, 0, maxN);
     }
 
-    private int queryFirstLess(Node node, int l, int r, int x, int[] order, int ls, int rs) {
+    private int queryFirstGreater(Node node, int l, int r, int x, int[] order, int ls, int rs) {
         int mid = ls + rs >> 1;
-        if (node.minVal >= x) {
+        if (node.maxVal <= x) {
             return -1;
         }
         if (ls == rs) {
@@ -251,13 +211,13 @@ class ExMinValSegTree extends MinValSegTree {
 
         for (int ord : order) {
             if (ord == 0 && l <= mid) {
-                int ret = queryFirstLess(node.left, l, r, x, order, ls, mid);
+                int ret = queryFirstGreater(node.left, l, r, x, order, ls, mid);
                 if (ret != -1) {
                     return ret;
                 }
             }
             if (ord == 1 && r >= mid + 1) {
-                int ret = queryFirstLess(node.right, l, r, x, order, mid + 1, rs);
+                int ret = queryFirstGreater(node.right, l, r, x, order, mid + 1, rs);
                 if (ret != -1) {
                     return ret;
                 }
@@ -265,4 +225,23 @@ class ExMinValSegTree extends MinValSegTree {
         }
         return -1;
     }
+
+    /**
+     * 前k大的数-1. 下标从1开始，下标0不存储元素。
+     * 如果第k大的数<=0，则返回false，并且不操作。
+     * 前提是整颗树是从大到小排序号的。
+     */
+    public boolean decTopK(int k) {
+        long v = query(k, k).sum;
+        if (v <= 0) {
+            return false;
+        }
+        int r2 = queryFirstGreater(1, maxN, (int) v - 1, false);
+        int r1 = queryFirstGreater(1, maxN, (int) v, false);
+        if (r1 == -1) r1 = 0;
+        add(0, r1, -1);
+        add(r2 - (k - r1) + 1, r2, -1);
+        return true;
+    }
 }
+

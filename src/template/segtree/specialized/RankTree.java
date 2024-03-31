@@ -1,4 +1,4 @@
-package template.segtree.special;
+package template.segtree.specialized;
 
 /**
  * tree[i]表示i在数组中出现的次数。可单点更新并查询数组的前k大之和。
