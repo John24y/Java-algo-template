@@ -1,81 +1,82 @@
 package main.nk;
-
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.*;
 
 public class Main {
-    int[] letc = new int[26];
-    ArrayList<Integer>[] lets = new ArrayList[26];
-    String s,t;
-    long n;
-    void solve() {
-        n=nextLong();
-        s=next();
-        t=next();
-        for (int i = 0; i < 26; i++) {
-            lets[i]=new ArrayList<>();
-        }
-        for (int i = 0; i < s.length() * 20; i++) {
-            int v=s.charAt(i%s.length()) - 'a';
-            lets[v].add(i);
-            if (i<s.length()) {
-                letc[v]+=1;
+    long MX = (long) 1e18;
+    long[] pre;
+    long[] w;
+    int n;
+    int[][] b;
+    long chMax(long v) {
+        long res=0;
+        long suf=0;
+        for (int i = n-1; i >= 0; i--) {
+            int bit = w[i]!=-1 ? ((int) (v/w[i])) : 0;
+            if (bit>0) {
+                int mb = 0;
+                for (int j = 0; j < bit; j++) {
+                    mb = Math.max(b[i][j], mb);
+                }
+                res = Math.max(res, suf + pre[i] + mb);
             }
+            suf+=b[i][bit];
+            v-=(long)bit*w[i];
         }
-        long low=0,high=(long) 1e18;
-//        long low=0,high=(long) 3;
-        while (low<=high) {
-            long mid = low + (high - low + 1) / 2;
-            if (check(mid)) {
-                low=mid+1;
-            } else {
-                high=mid-1;
-            }
+        if (v!=0) {
+            throw new RuntimeException();
         }
-        System.out.println(high);
+        res=Math.max(res, suf);
+        return res;
     }
+    void solve() {
+        n=nextInt();
+        int q=nextInt();
+        int[] gc=new int[n];
+        b=new int[n][50];
+        int[] bmx=new int[n];
+        w=new long[n];
+        for (int i = 0; i < n; i++) {
+            gc[i]=nextInt();
+            for (int j = 0; j < gc[i]; j++) {
+                b[i][j]=nextInt();
+                bmx[i]=Math.max(bmx[i],b[i][j]);
+            }
+        }
+        pre=new long[n+1];
+        for (int i = 0; i < n; i++) {
+            pre[i+1]=pre[i]+bmx[i];
+        }
 
-    boolean check(long k) {
-        if (k==0) return true;
-        long rep=0;
-        int i=0;
-        for (int j = 0; j < t.length(); j++) {
-            int chr=t.charAt(j)-'a';
-            if (letc[chr]==0) return false;
-            long kk=k;
-            if (kk>letc[chr]) {
-                if (kk%letc[chr] == 0) {
-                    rep+=kk/letc[chr]-1;
-                    kk=letc[chr];
+        long ww=1;
+        w=new long[n];
+        Arrays.fill(w,-1);
+        for (int i = 0; i < n; i++) {
+            w[i]=ww;
+            ww*=(long)gc[i];
+            if (ww>MX) break;
+        }
+
+        for (int i = 0; i < q; i++) {
+            long h=nextLong(),l=nextLong(),r=nextLong();
+            long lo=l,hi=r;
+            while (lo<=hi){
+                long mid=lo+(hi-lo+1)/2;
+                if (chMax(mid)>=h){
+                    hi=mid-1;
                 } else {
-                    rep+=kk/letc[chr];
-                    kk%=letc[chr];
+                    lo=mid+1;
                 }
             }
-            i = findNext(lets[chr], (int)kk, i);
-            if (i>=s.length()) {
-                rep++;
-                i%=s.length();
-            }
-            if (rep>n || rep==n&&i>0){
-                return false;
-            }
-        }
-        return true;
-    }
-
-    int findNext(List<Integer> list, int kk, int i) {
-        if (kk==0) return i;
-        int lo=0,hi=list.size()-1;
-        while (lo<=hi) {
-            int mid=lo+hi>>1;
-            if (list.get(mid)>=i) {
-                hi=mid-1;
+            if (lo>r){
+                out.println(-1);
             } else {
-                lo=mid+1;
+                out.println(lo);
             }
         }
-        return list.get(lo+kk-1)+1;
     }
 
     public static void main(String[] args) throws Exception {

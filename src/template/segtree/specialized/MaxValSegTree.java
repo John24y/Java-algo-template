@@ -34,19 +34,20 @@ class MaxValSegTree {
         int ls, rs;//debug用
 
         long maxVal;
+        long maxId;
         int lazyType;
         long lazyVal;
-        long sum;
 
         void init(int ls, int rs) {
             this.ls = ls;
             this.rs = rs;
+            maxId = ls;
         }
 
         void initForQuery(int ls, int rs) {
             this.ls = ls;
             this.rs = rs;
-            sum = 0;
+            maxId = ls;
             maxVal = Long.MIN_VALUE;
         }
     }
@@ -66,21 +67,25 @@ class MaxValSegTree {
      * 3 @param val可能在多次懒修改中累积，并非总是调用add时的传参
      */
     void apply(Node node, int ls, int rs, int type, long val) {
-        node.lazyType = type;
         if (type == OP_ADD) {
             node.lazyVal += val;
-            node.sum += (rs - ls + 1) * val;
             node.maxVal += val;
+            node.lazyType = node.lazyType == OP_SET ? OP_SET : OP_ADD;
         } else if (type == OP_SET) {
             node.lazyVal = val;
-            node.sum = (rs - ls + 1) * val;
             node.maxVal = val;
+            node.lazyType = type;
         }
     }
 
     void reduce(Node node, Node left, Node right, int ls, int rs) {
-        node.sum = left.sum + right.sum;
-        node.maxVal = Math.max(left.maxVal, right.maxVal);
+        if (left.maxVal >= right.maxVal) {
+            node.maxVal = left.maxVal;
+            node.maxId = left.maxId;
+        } else {
+            node.maxVal = right.maxVal;
+            node.maxId = right.maxId;
+        }
     }
 
     void build(long[] vals) {
