@@ -237,7 +237,7 @@ class ExMaxValSegTree extends MaxValSegTree {
      * 前提是整颗树是从大到小排序号的。
      */
     public boolean decTopK(int k) {
-        long v = query(k, k).sum;
+        long v = query(k, k).maxVal;
         if (v <= 0) {
             return false;
         }
