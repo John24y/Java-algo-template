@@ -28,11 +28,27 @@ public class LCUtils {
         }
         return list.stream().toArray(int[][]::new);
     }
+    public static long[][] parseLongLongAr(String s) {
+        s = s.replace(" ", "");
+        Pattern pattern = Pattern.compile("\\[[,\\d-]*]");
+        Matcher matcher = pattern.matcher(s);
+        List<long[]> list = new ArrayList<>();
+        while (matcher.find()) {
+            list.add(parseLongAr(matcher.group()));
+        }
+        return list.stream().toArray(long[][]::new);
+    }
 
     public static int[] parseIntAr(String s) {
         s = s.replace(" ", "");
         s = s.substring(1, s.length() - 1);
         return Arrays.stream(s.split(",")).mapToInt(Integer::parseInt).toArray();
+    }
+
+    public static long[] parseLongAr(String s) {
+        s = s.replace(" ", "");
+        s = s.substring(1, s.length() - 1);
+        return Arrays.stream(s.split(",")).mapToLong(Long::parseLong).toArray();
     }
 
     public static String[] parseStringAr(String s) {
