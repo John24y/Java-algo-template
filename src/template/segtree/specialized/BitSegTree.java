@@ -11,29 +11,9 @@ package template.segtree.specialized;
  * @Date 2023/3/12
  */
 class BitSegTree {
-    static NodePool TMP_POOL = new NodePool();
-    static class NodePool {
-        int i = 1;
-        //数量有限，只能用作一次性临时变量，递归时要后序获取
-        Node[] pool = new Node[130];
-
-        public NodePool() {
-            for (int j = 0; j < pool.length; j++) {
-                pool[j] = new Node();
-            }
-            pool[0].init(0, -1);
-        }
-
-        Node immutableEmpty() {
-            return pool[0];
-        }
-
-        Node next(int ls, int rs) {
-            Node ret = pool[i++];
-            ret.init(ls, rs);
-            if (i == pool.length) i = 1;
-            return ret;
-        }
+    static Node EMPTY = new Node();
+    static {
+        EMPTY.init(-1,0);
     }
 
     static class Node {
@@ -154,11 +134,6 @@ class BitSegTree {
         return query(root, l, r, 0, maxN);
     }
 
-    private static final Node EMPTY = new Node();
-    static {
-        EMPTY.init(0, -1);
-    }
-
     private Node query(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
@@ -176,7 +151,8 @@ class BitSegTree {
         if (r >= mid + 1) {
             right = query(node.right, l, r, mid + 1, rs);
         }
-        Node ret = TMP_POOL.next(Math.max(ls, l), Math.min(rs, r));
+        Node ret = new Node();
+        ret.init(Math.max(ls, l), Math.min(rs, r));
         reduce(ret, left, right);
         return ret;
     }

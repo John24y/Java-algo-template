@@ -180,6 +180,32 @@ public class MathTemplate {
         return res;
     }
 
+    /**
+     * 莫比乌斯函数值的前缀和
+     */
+    static int[] mobiusPrefix(int n) {
+        boolean[] vis = new boolean[n + 1];
+        int[] p = new int[n + 1];
+        int cnt = 0;
+        int[] mu = new int[n + 1];
+        mu[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            if (!vis[i]) {
+                p[++cnt] = i;
+                mu[i] = -1;
+            }
+            for (int j = 1; i * p[j] <= n; j++) {
+                vis[i * p[j]] = true;
+                if (i % p[j] == 0) break;
+                mu[i * p[j]] = -mu[i];
+            }
+        }
+        for (int i = 1; i <= n; i++) {
+            mu[i] += mu[i - 1];
+        }
+        return mu;
+    }
+
     static class Point {
         long x,y;
 

@@ -2,88 +2,106 @@ package main.nk;
 import java.io.*;
 import java.util.*;
 
+class UnionFind {
+    int[] fa;
+    int[] sz;//包含节点数量
+    int[] edgeCnt;//包含边数
+
+    public UnionFind(int n) {
+        fa=new int[n+1];
+        sz=new int[n+1];
+        edgeCnt=new int[n+1];
+        for (int i = 0; i <= n; i++) {
+            fa[i]=i;
+            sz[i]=1;
+        }
+    }
+
+    int find(int x) {
+        if (fa[x]!=x){
+            fa[x]=find(fa[x]);
+        }
+        return fa[x];
+    }
+
+    void union(int i, int j) {
+        int f1=find(i);
+        int f2=find(j);
+        edgeCnt[f1]++;
+        if (f1==f2)return;
+        fa[f2]=f1;
+        sz[f1]+=sz[f2];
+        edgeCnt[f1]+=edgeCnt[f2];
+    }
+
+}
+class Pair<K, V> {
+    private K key;
+    private V value;
+
+    public Pair(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public V getValue() {
+        return value;
+    }
+}
 public class Main {
-    long inf = Long.MIN_VALUE;
-    int n;
-    String s;
-    int[] v;
-    int[] c;
-    long[][] dp;
-    long[][] dp2;
-
-    long dfs(int l, int r) {
-        if (r<l) return 0;
-        if (dp[l][r]!=inf){
-            return dp[l][r];
-        }
-        long res=inf;
-        for (int i = r - 1; i >= l; i-=2) {
-            long cost=0;
-            if (s.charAt(i)==')') {
-                cost+=c[i];
-            }
-            if (s.charAt(r)=='(') {
-                cost+=c[r];
-            }
-            res=Math.max(res, (long)v[r]*v[i]-cost+dfs(i+1,r-1)+dfs(l,i-1));
-        }
-        dp[l][r]=res;
-        return res;
-    }
-
-    long dfs2(int r, int canLeft) {
-        if (r<0){
-            return 0;
-        }
-        if (r==0) {
-            if (canLeft==1) {
-                return 0;
-            } else {
-                return s.charAt(0)=='(' ? -c[0] : 0;
-            }
-        }
-        if (dp2[canLeft][r]!=inf) {
-            return dp2[canLeft][r];
-        }
-        long res=inf;
-        if (canLeft==1) {
-            res=Math.max(res,(s.charAt(r)==')' ? -c[r] : 0) + dfs2(r-1,canLeft));// 左开不匹配
-        }
-        res = Math.max(res, (s.charAt(r)=='(' ? -c[r] : 0) + dfs2(r-1,0)); // 右开不匹配
-        for (int i = r-1; i >= 0; i-=2) {
-            long cost=0;
-            if (s.charAt(i)==')') {
-                cost+=c[i];
-            }
-            if (s.charAt(r)=='(') {
-                cost+=c[r];
-            }
-            res=Math.max(res, (long)v[r]*v[i]-cost+dfs2(i-1,canLeft)+dfs(i+1,r-1));
-        }
-        dp2[canLeft][r]=res;
-        return res;
-    }
 
     void solve() {
-        n=nextInt();
-        s=next();
-        v=new int[n];
-        c=new int[n];
-        dp=new long[n][n];
-        dp2=new long[2][n];
-        Arrays.fill(dp2[0],inf);
-        Arrays.fill(dp2[1],inf);
-        for (int i = 0; i < n; i++) {
-            Arrays.fill(dp[i],inf);
+        int n = nextInt();
+        int m = nextInt();
+
+        List<Pair<Integer, List<Integer>>> costs = new ArrayList<>();
+        for (int i = 0; i < m; i++) {
+            int k = nextInt();
+            int cost = nextInt();
+            List<Integer> vertices = new ArrayList<>();
+            for (int j = 0; j < k; j++) {
+                vertices.add(nextInt());
+            }
+            costs.add(new Pair<>(cost, vertices));
         }
-        for (int i = 0; i < n; i++) {
-            v[i]=nextInt();
+
+        costs.sort(new Comparator<Pair<Integer, List<Integer>>>() {
+            @Override
+            public int compare(Pair<Integer, List<Integer>> o1, Pair<Integer, List<Integer>> o2) {
+                return Integer.compare(o1.getKey(), o2.getKey());
+            }
+        });
+        UnionFind uf = new UnionFind(n + 1);
+        long result = 0;
+
+        for (Pair<Integer, List<Integer>> pair : costs) {
+            long cost = pair.getKey();
+            List<Integer> vertices = pair.getValue();
+            Set<Integer> groups = new HashSet<>();
+            for (int vertex : vertices) {
+                groups.add(uf.find(vertex));
+            }
+            result += (long) (groups.size() - 1) * cost;
+            int firstVertexRoot = uf.find(vertices.get(0));
+            for (int vertex : vertices) {
+                uf.union(firstVertexRoot, uf.find(vertex));
+            }
         }
-        for (int i = 0; i < n; i++) {
-            c[i]=nextInt();
+
+        Set<Integer> finalGroups = new HashSet<>();
+        for (int v = 1; v <= n; v++) {
+            finalGroups.add(uf.find(v));
         }
-        long res = dfs2(n - 1, 1);
-        System.out.println(res);
+
+        if (finalGroups.size() > 1) {
+            System.out.println(-1);
+        } else {
+            System.out.println(result);
+        }
     }
 
     public static void main(String[] args) throws Exception {

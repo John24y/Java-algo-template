@@ -1,84 +1,47 @@
 package main.at;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringTokenizer;
-
-class Node {
-    String str;
-    List<Node> ch=new ArrayList<>();
-}
+import java.util.*;
 
 public class Main implements Runnable{
-    int bi;
-    String s;
     int n;
-    StringBuilder res=new StringBuilder();
-    List<Node> build() {
-        List<Node> r=new ArrayList<>();
-        while (bi<n){
-            if (s.charAt(bi)=='(') {
-                Node node = new Node();
-                bi++;
-                node.ch = build();
-                bi++;
-                r.add(node);
-            } else if (s.charAt(bi) == ')') {
-                return r;
-            } else {
-                StringBuilder builder = new StringBuilder();
-                while (bi<n && s.charAt(bi)!='(' && s.charAt(bi)!=')') {
-                    builder.append(s.charAt(bi));
-                    bi+=1;
-                }
-                Node node = new Node();
-                node.str = builder.toString();
-                r.add(node);
-            }
-        }
-        return r;
-    }
-
+    int[][] dp;
+    int[][] card;
     public void solve() {
-        s = next();
-        n=s.length();
-        List<Node> r = build();
-        dfs(r, false);
-        System.out.println(res.toString());
+        n=nextInt();
+        dp=new int[2][1<<n];
+        card=new int[n][2];
+        Arrays.fill(dp[0],-1);
+        Arrays.fill(dp[1],-1);
+        for (int i = 0; i < n; i++) {
+            card[i][0]=nextInt();
+            card[i][1]=nextInt();
+        }
+        int r = dfs((1 << n) - 1, 1);
+        System.out.println(r==1?"Takahashi":"Aoki");
     }
 
-    /**
-     * @param list
-     * @param rev
-     */
-    void dfs(List<Node> list, boolean rev) {
-        for (Node node : list) {
-            if (node.str != null) {
-                if (!rev) {
-                    res.append(node.str);
-                } else {
-                    for (int i = node.str.length() - 1; i >= 0; i--) {
-                        char c = node.str.charAt(i);
-                        if (c>='a' && c<='z') {
-                            res.append((char)(c-'a'+'A'));
-                        } else {
-                            res.append((char)(c-'A'+'a'));
-                        }
+    int dfs(int s, int turn) {
+        if (dp[turn][s]!=-1) {
+            return dp[turn][s];
+        }
+        for (int i = 0; i < n; i++) {
+            if (((s>>i)&1)==0) continue;
+            for (int j = 0; j < n; j++) {
+                if (((s>>j)&1)==0 || i==j) continue;
+                if (card[i][0]==card[j][0]||card[i][1]==card[j][1]){
+                    int r=dfs(s-(1<<i)-(1<<j),1^turn);
+                    if (r==0) {
+                        dp[turn][s]=1;
+                        return 1;
                     }
                 }
-            } else {
-                boolean nrev=!rev;
-                if (nrev) {
-                    Collections.reverse(node.ch);
-                    dfs(node.ch, nrev);
-                } else {
-                    dfs(node.ch, nrev);
-                }
             }
         }
+        dp[turn][s]=0;
+        return 0;
     }
+
 
     public static void main(String[] args) throws Exception {
         new Thread(null, new Main(), "CustomThread", 1024 * 1024 * 100).start();

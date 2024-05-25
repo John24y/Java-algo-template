@@ -133,3 +133,51 @@ class HeuUnionFind {
 }
 
 
+
+class HeightUnionFind {
+    int[] fa;
+    int[] sz;
+    int[] inc; //比parent的高度增量
+
+    public HeightUnionFind(int n) {
+        fa = new int[n + 1];
+        sz = new int[n + 1];
+        inc = new int[n + 1];
+        for (int i = 0; i <= n; i++) {
+            fa[i] = i;
+            sz[i] = 1;
+            inc[i] = 0;
+        }
+    }
+
+    int find(int x) {
+        if (fa[x] != x) {
+            int r = find(fa[x]);
+            inc[x] += inc[fa[x]];
+            fa[x] = r;
+        }
+        return fa[x];
+    }
+
+    // height[i]-height[j]==dis
+    void union(int i, int j, int dis) {
+        int f1 = find(i);
+        int f2 = find(j);
+        if (f1 == f2) {
+            if (inc[i]-inc[j]!=dis) {
+                throw new IllegalStateException();
+            }
+            return;
+        }
+        int d = dis - inc[i] + inc[j];
+        if (d < 0) {
+            union(j, i, -dis);
+            return;
+        }
+        inc[f1] = dis - inc[i] + inc[j];
+        fa[f1] = f2;
+        sz[f2] += sz[f1];
+    }
+
+}
+

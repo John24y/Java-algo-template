@@ -3,29 +3,10 @@ package template.segtree.specialized;
 class MaxValSegTree {
     static final int OP_ADD = 1;
     static final int OP_SET = 2;
-    static NodePool TMP_POOL = new NodePool();
 
-    static class NodePool {
-        int i = 1;
-        Node[] pool = new Node[129];
-
-        public NodePool() {
-            for (int j = 0; j < pool.length; j++) {
-                pool[j] = new Node();
-            }
-            pool[0].init(0, -1);
-        }
-
-        Node immutableEmpty() {
-            return pool[0];
-        }
-
-        Node next(int ls, int rs) {
-            Node ret = pool[i++];
-            ret.initForQuery(ls, rs);
-            if (i == pool.length) i = 1;
-            return ret;
-        }
+    static Node EMPTY = new Node();
+    static {
+        EMPTY.init(0, -1);
     }
 
     static class Node {
@@ -173,14 +154,15 @@ class MaxValSegTree {
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
         Node left, right;
-        left = right = TMP_POOL.immutableEmpty();
+        left = right = EMPTY;
         if (l <= mid) {
             left = query(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
             right = query(node.right, l, r, mid + 1, rs);
         }
-        Node ret = TMP_POOL.next(Math.max(ls, l), Math.min(rs, r));
+        Node ret = new Node();
+        ret.initForQuery(Math.max(ls, l), Math.min(rs, r));
         reduce(ret, left, right, ret.ls, ret.rs);
         return ret;
     }

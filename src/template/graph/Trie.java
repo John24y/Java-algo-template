@@ -6,10 +6,9 @@ class Trie {
     static int DIM = 26;
     Trie[] child = new Trie[DIM];
     int val = 0;
-    Trie root = new Trie();
 
     void add(String s, int val) {
-        Trie cur = root;
+        Trie cur = this;
         for (int i = 0; i < s.length(); i++) {
             int c = s.charAt(i) - 'a';
             // cur是c的父节点, cur.child[c]是c的节点
@@ -21,7 +20,7 @@ class Trie {
     }
 
     int get(String s) {
-        Trie cur = root;
+        Trie cur = this;
         for (int i = 0; i < s.length(); i++) {
             int c = s.charAt(i) - 'a';
             if (cur.child[c] == null) {
