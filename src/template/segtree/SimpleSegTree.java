@@ -292,7 +292,7 @@ class StringHashSegTree extends SimpleSegTree {
     }
 
     public Node hash(int l, int r) {
-        return (Node) queryStrictMerge(root, l, r, 0, maxN);
+        return (Node) query(root, l, r, 0, maxN);
     }
 }
 
