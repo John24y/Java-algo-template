@@ -96,31 +96,28 @@ class SimpleSegTree {
         }
     }
 
-    private final Node sumResult = new Node();
-
     public long sum(int l, int r) {
-        sumResult.sum = 0;
-        sum(root, l, r, 0, maxN);
-        return sumResult.sum;
+        return sum(root, l, r, 0, maxN);
     }
 
-    private void sum(Node node, int l, int r, int ls, int rs) {
+    private long sum(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN || r < 0) throw new IllegalArgumentException("index:" + l + "," + r);
         if (l <= ls && rs <= r) {
-            reduce(sumResult, sumResult, node, ls, rs);
-            return;
+            return node.sum;
         }
         pushDown(node, ls, rs);
         int mid = ls + rs >> 1;
+        long res = 0;
         if (l <= mid) {
-            sum(node.left, l, r, ls, mid);
+            res += sum(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            sum(node.right, l, r, mid + 1, rs);
+            res += sum(node.right, l, r, mid + 1, rs);
         }
+        return res;
     }
 
-    Node queryStrictMerge(Node node, int l, int r, int ls, int rs) {
+    Node query(Node node, int l, int r, int ls, int rs) {
         if (l < 0 || r > maxN) {
             throw new IllegalArgumentException();
         }
@@ -131,10 +128,10 @@ class SimpleSegTree {
         int mid = ls + rs >> 1;
         Node res = createNode(Math.max(ls, l), Math.min(rs, r)), leftRes = null, rightRes = null;
         if (l <= mid) {
-            leftRes = queryStrictMerge(node.left, l, r, ls, mid);
+            leftRes = query(node.left, l, r, ls, mid);
         }
         if (r >= mid + 1) {
-            rightRes = queryStrictMerge(node.right, l, r, mid + 1, rs);
+            rightRes = query(node.right, l, r, mid + 1, rs);
         }
         if (leftRes == null) return rightRes;
         if (rightRes == null) return leftRes;
