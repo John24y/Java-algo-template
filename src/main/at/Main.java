@@ -2,103 +2,73 @@ package main.at;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.IntPredicate;
-@SuppressWarnings("all")
-class Counter<K> extends HashMap<K,Integer> {
+import java.util.concurrent.ThreadLocalRandom;
 
-    public Counter() {
-    }
+public class Main implements Runnable {
 
-    public Counter(Collection<K> collection) {
-        for (K k : collection) {
-            add(k, 1);
-        }
-    }
-
-    public void addInts(int[] ints) {
-        for (int anInt : ints) {
-            add((K) (Integer) anInt, 1);
-        }
-    }
-
-    public void addLongs(long[] longs) {
-        for (long v : longs) {
-            add((K) (Long) v, 1);
-        }
-    }
-
-    public void add(K key, int cnt) {
-        int newV = get(key) + cnt;
-        if (newV == 0) {
-            remove(key);
-        } else {
-            put(key, newV);
-        }
-    }
-
-    @Override
-    public Integer get(Object key) {
-        return super.getOrDefault(key, 0);
-    }
-}
-class BinarySearch {
-
-    /**
-     * 返回第一个为true的位置 [0,n]
-     */
-    public static int bisect(int low, int high, IntPredicate predicate) {
-        while (low<=high){
-            int mid=low+high>>1;
-            if (predicate.test(mid)) {
-                high=mid-1;
-            } else {
-                low=mid+1;
+    public int partition(List<Integer> list, int left, int right, Comparator<Integer> comparator) {
+        int p = ThreadLocalRandom.current().nextInt(left, right + 1);
+        Collections.swap(list, right, p);
+        int pi = list.get(right);
+        int j = 0;
+        for (int i = left; i < right; i++) {
+            if (comparator.compare(list.get(i), pi) <= 0) {
+                Collections.swap(list, i, j);
+                j++;
             }
         }
-        return low;
+        Collections.swap(list, j, right);
+        return j;
     }
-}
-public class Main implements Runnable{
+
+    // [left,right]
+    public int kth(List<Integer> list, int left, int right, int k, Comparator<Integer> comparator) {
+        if (left == right) {
+            return left;
+        }
+        int p = partition(list, left, right, comparator);
+        if (p - left + 1 == k) {
+            return p;
+        } else if (p - left + 1 > k) {
+            return kth(list, left, p - 1, k, comparator);
+        } else {
+            return kth(list, p + 1, right, k - (p - left + 1), comparator);
+        }
+    }
+
     public void solve() {
         int n=nextInt();
-        int[] a=new int[n];
+        List<Integer> rem = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            a[i]=nextInt();
+            rem.add(i+1);
         }
-        Counter<Integer> counter = new Counter<>();
-        counter.addInts(a);
-        ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(counter.entrySet());
-        list.sort(new Comparator<Map.Entry<Integer, Integer>>() {
-            @Override
-            public int compare(Map.Entry<Integer, Integer> o1, Map.Entry<Integer, Integer> o2) {
-                return Integer.compare(o1.getKey(), o2.getKey());
-            }
-        });
-        n=list.size();
-        int[] pre = new int[n+1];
-        for (int i = 0; i < n; i++) {
-            pre[i+1]=pre[i]+list.get(i).getValue();
-        }
-        long res=0;
-        for (int i = 0; i < n; i++) {
-            int last=i+1;
-            res+= (long) list.get(i).getValue() *(list.get(i).getValue()-1)/2;
-            for (int m = 2; m < 999999999; m++) {
-                int f=list.get(i).getKey()*m;
-                int j=BinarySearch.bisect(0, n - 1, new IntPredicate() {
-                    @Override
-                    public boolean test(int value) {
-                        return list.get(value).getKey()>=f;
-                    }
-                });
-                res+= (long) (pre[j] - pre[last]) *(m-1) * list.get(i).getValue();
-                last = j;
-                if (j>=n) {
-                    break;
+        int next = n+1;
+        while (rem.size() > 1) {
+            List<Integer> nrem = new ArrayList<>();
+            int kth = kth(rem, 0, rem.size() - 1, rem.size() / 2, new Comparator<Integer>() {
+                @Override
+                public int compare(Integer o1, Integer o2) {
+                    out.println("? " + o1 + " " + o2);
+                    out.flush();
+                    return nextInt();
                 }
+            });
+            for (int i = 0; i < (rem.size() / 2); i++) {
+                out.println("+ " + rem.get(i) + " " + rem.get(rem.size() - i - 1));
+                out.flush();
+                int r = nextInt();
+                if (r==-1) {
+                    return;
+                }
+                nrem.add(next);
+                next++;
             }
+            if (rem.size()%2==1) {
+                nrem.add(rem.get(rem.size() / 2));
+            }
+            rem = nrem;
         }
-        out.println(res);
+        out.println("!");
     }
 
     public static void main(String[] args) throws Exception {
