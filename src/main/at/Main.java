@@ -1,74 +1,95 @@
 package main.at;
-
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
-public class Main implements Runnable {
+class RingTree {
+    List<List<Integer>> cycList=new ArrayList<>();//所有环的list
+    int[] cycId;//每个节点所在环(cyc_list)的下标，不在环上是-1
+    int[] idxInCyc;
+    int[] edges;
 
-    public int partition(List<Integer> list, int left, int right, Comparator<Integer> comparator) {
-        int p = ThreadLocalRandom.current().nextInt(left, right + 1);
-        Collections.swap(list, right, p);
-        int pi = list.get(right);
-        int j = 0;
-        for (int i = left; i < right; i++) {
-            if (comparator.compare(list.get(i), pi) <= 0) {
-                Collections.swap(list, i, j);
-                j++;
+    //节点i指向edges[i]
+    public RingTree(int[] edges) {
+        int n = edges.length;
+        cycId=new int[n];
+        idxInCyc=new int[n];
+        this.edges=edges;
+        Arrays.fill(cycId, -1);
+        Arrays.fill(idxInCyc, -1);
+        boolean[] vis=new boolean[n];
+        boolean[] inStack=new boolean[n];
+        List<Integer> stack=new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            dfs(i, vis, inStack, stack, edges);
+        }
+    }
+
+    void dfs(int i, boolean[] vis, boolean[] inStack, List<Integer> stack, int[] edges) {
+        if (inStack[i]) {
+            int j=edges[i];
+            List<Integer> cyc=new ArrayList<>();
+            cycList.add(cyc);
+            while (j!=i){
+                cyc.add(j);
+                j=edges[j];
             }
+            cyc.add(i);
+            for (int k = 0; k < cyc.size(); k++) {
+                int v=cyc.get(k);
+                cycId[v]=cycList.size()-1;
+                idxInCyc[v]=k;
+            }
+            return;
         }
-        Collections.swap(list, j, right);
-        return j;
+        if (vis[i])return;
+        vis[i]=true;
+        inStack[i]=true;
+        stack.add(i);
+        dfs(edges[i], vis, inStack, stack, edges);
+        stack.remove(stack.size()-1);
+        inStack[i]=false;
     }
 
-    // [left,right]
-    public int kth(List<Integer> list, int left, int right, int k, Comparator<Integer> comparator) {
-        if (left == right) {
-            return left;
+    /**
+     * 到圆环的距离，每条边的长度算1
+     */
+    int[] distanceToCycle() {
+        int n = edges.length;
+        boolean[] vis = new boolean[n];
+        int[] dis = new int[n];
+        for (int i = 0; i < n; i++) {
+            distanceToCycle(i, edges, vis, dis);
         }
-        int p = partition(list, left, right, comparator);
-        if (p - left + 1 == k) {
-            return p;
-        } else if (p - left + 1 > k) {
-            return kth(list, left, p - 1, k, comparator);
+        return dis;
+    }
+
+    private void distanceToCycle(int i, int[] edges, boolean[] vis, int[] dis) {
+        if (vis[i]) return;
+        vis[i] = true;
+        distanceToCycle(edges[i], edges, vis, dis);
+        if (cycId[i] == -1) {
+            dis[i] = dis[edges[i]] + 1;
         } else {
-            return kth(list, p + 1, right, k - (p - left + 1), comparator);
+            dis[i]=cycList.get(cycId[i]).size();
         }
     }
+
+}
+public class Main implements Runnable {
 
     public void solve() {
         int n=nextInt();
-        List<Integer> rem = new ArrayList<>();
+        int[] edges = new int[n];
         for (int i = 0; i < n; i++) {
-            rem.add(i+1);
+            edges[i]=nextInt()-1;
         }
-        int next = n+1;
-        while (rem.size() > 1) {
-            List<Integer> nrem = new ArrayList<>();
-            int kth = kth(rem, 0, rem.size() - 1, rem.size() / 2, new Comparator<Integer>() {
-                @Override
-                public int compare(Integer o1, Integer o2) {
-                    out.println("? " + o1 + " " + o2);
-                    out.flush();
-                    return nextInt();
-                }
-            });
-            for (int i = 0; i < (rem.size() / 2); i++) {
-                out.println("+ " + rem.get(i) + " " + rem.get(rem.size() - i - 1));
-                out.flush();
-                int r = nextInt();
-                if (r==-1) {
-                    return;
-                }
-                nrem.add(next);
-                next++;
-            }
-            if (rem.size()%2==1) {
-                nrem.add(rem.get(rem.size() / 2));
-            }
-            rem = nrem;
+        RingTree tree = new RingTree(edges);
+        int[] ints = tree.distanceToCycle();
+        long res=0;
+        for (int anInt : ints) {
+            res+=anInt;
         }
-        out.println("!");
+        out.println(res);
     }
 
     public static void main(String[] args) throws Exception {
