@@ -1,8 +1,11 @@
-package main.lc;
+package template;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.BitSet;
 
+/**
+ * @Author Create by crow
+ * @Date 2024/6/9
+ */
 class BitSets {
 
     /**
@@ -40,37 +43,6 @@ class BitSets {
         }
 
         return BitSet.valueOf(res);
-    }
-
-}
-class Solution {
-    public int maxTotalReward(int[] rewardValues) {
-        Arrays.sort(rewardValues);
-
-        BitSet current = new BitSet();
-
-        current.set(0);
-
-        BitSet clone, shifted;
-
-        int max = 0;
-
-        for (int num : rewardValues)
-            max = Math.max(max, num);
-
-        for (int num : rewardValues) {
-            clone = (BitSet)current.clone();
-            int size = clone.size();
-
-            if (size > num)
-                clone.clear(num, size);
-
-            shifted = BitSets.shiftLeft(clone, num, 2 * max);
-            current.or(shifted);
-        }
-
-        // System.out.println(current);
-        return current.previousSetBit(100_000);
     }
 
 }
