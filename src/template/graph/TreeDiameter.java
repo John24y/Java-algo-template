@@ -111,7 +111,7 @@ class TreeDiameter {
                 if (edge[0] == p) continue;
                 long v = deep[edge[0]] + edge[1];
                 long npDeep = v != dp[i] ? dp[i] : (dis.size() >= 2 ? dis.get(dis.size() - 2) : 0);
-                dfs(edge[0], i, npDeep + edge[1]);
+                dfs(edge[0], i, Math.max(0, npDeep) + edge[1]);
             }
         }
 
