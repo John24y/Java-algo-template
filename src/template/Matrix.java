@@ -36,10 +36,32 @@ public class Matrix {
         return res;
     }
 
+    public static int[][] rotateRight(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        int[][] res = new int[n][m];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                res[j][m-i-1]=matrix[i][j];
+            }
+        }
+        return res;
+    }
+
+    public static int[][] rotateLeft(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        int[][] res = new int[n][m];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                res[n-1-j][i]=matrix[i][j];
+            }
+        }
+        return res;
+    }
+
     /**
-     * 顺时针旋转矩阵90度
+     * 顺时针旋转矩阵90度，矩阵长宽需要相等
      */
-    public static void rotateMatrix(int[][] matrix) {
+    public static void rotateRightInplace(int[][] matrix) {
         int n = matrix.length;
         // 先转置矩阵
         for (int i = 0; i < n; i++) {
@@ -60,9 +82,9 @@ public class Matrix {
     }
 
     /**
-     * 逆时针旋转矩阵90度
+     * 逆时针旋转矩阵90度，矩阵长宽需要相等
      */
-    public static void antiRotateMatrix(int[][] matrix) {
+    public static void rotateLeftInplace(int[][] matrix) {
         int n = matrix.length;
         // 先转置矩阵
         for (int i = 0; i < n; i++) {

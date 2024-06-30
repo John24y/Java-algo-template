@@ -39,13 +39,13 @@ public class MathTemplate {
      * 求逆元，m必须是素数
      */
     static long modinv(long a, long m) {
-        return ksm(a, m - 2, m);
+        return pow(a, m - 2, m);
     }
 
     /**
      * 快速幂，求(a^pow)%mod
      */
-    static long ksm(long a, long pow, long mod) {
+    static long pow(long a, long pow, long mod) {
         long skt = 1;
         while (pow > 0) {
             if (pow % 2 != 0) {
@@ -83,7 +83,7 @@ public class MathTemplate {
         fac[0] = faci[0] = 1;
         for (int i = 1; i <= n; i++) {
             fac[i] = fac[i - 1] * i % mod;
-            faci[i] = (int) ksm(fac[i], mod - 2, mod);
+            faci[i] = (int) pow(fac[i], mod - 2, mod);
         }
         return new int[][]{fac, faci};
     }
